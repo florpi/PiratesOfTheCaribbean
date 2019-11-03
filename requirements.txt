@@ -17,3 +17,5 @@ shapely>=1.6.4
 opencv-python>=4.1.1
 keras
 tensorflow>=1.14.0
+tensorflow_hub
+comet_ml
