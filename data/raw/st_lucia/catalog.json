@@ -1,0 +1,32 @@
+{
+    "id": "wer-open-data-st_lucia",
+    "stac_version": "0.8.0",
+    "description": "We Robotics OpenAI Data over St_lucia",
+    "links": [
+        {
+            "rel": "child",
+            "href": "castries/collection.json",
+            "type": "application/json"
+        },
+        {
+            "rel": "child",
+            "href": "dennery/collection.json",
+            "type": "application/json"
+        },
+        {
+            "rel": "child",
+            "href": "gros_islet/collection.json",
+            "type": "application/json"
+        },
+        {
+            "rel": "root",
+            "href": "../catalog.json",
+            "type": "application/json"
+        },
+        {
+            "rel": "parent",
+            "href": "../catalog.json",
+            "type": "application/json"
+        }
+    ]
+}

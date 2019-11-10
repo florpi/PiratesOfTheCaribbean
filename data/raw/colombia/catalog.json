@@ -1,0 +1,27 @@
+{
+    "id": "wer-open-data-colombia",
+    "stac_version": "0.8.0",
+    "description": "We Robotics OpenAI Data over Colombia",
+    "links": [
+        {
+            "rel": "child",
+            "href": "borde_rural/collection.json",
+            "type": "application/json"
+        },
+        {
+            "rel": "child",
+            "href": "borde_soacha/collection.json",
+            "type": "application/json"
+        },
+        {
+            "rel": "root",
+            "href": "../catalog.json",
+            "type": "application/json"
+        },
+        {
+            "rel": "parent",
+            "href": "../catalog.json",
+            "type": "application/json"
+        }
+    ]
+}
