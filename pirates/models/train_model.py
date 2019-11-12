@@ -72,8 +72,9 @@ def transfer_train(X_train, y_train, X_test, y_test):
     batch_stats_callback = CollectBatchStats()
 
     '''
-    history = model.fit_generator(generator, epochs=2,
-                                  steps_per_epoch=steps_per_epoch,
+    history = model.fit_generator(train_generator, epochs=2,
+                                  batch_size=BATCH_SIZE,
+                                  validation_data=validation_generator,
                                   callbacks = [batch_stats_callback])
     '''
     history = model.fit(X_train, y_train, epochs=10,
@@ -90,7 +91,6 @@ if __name__=='__main__':
     RATIO=1.33
     WIDTH=300
     IMAGE_SHAPE=(int(WIDTH/RATIO), WIDTH, 3)
-    print(IMAGE_SHAPE)
     IMAGE_SHAPE = (224, 224, 3)
 
     X_train = np.random.random(size=(100,)+IMAGE_SHAPE)
