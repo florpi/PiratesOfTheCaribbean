@@ -1,4 +1,5 @@
 
+from comet_ml import Experiment
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -13,7 +14,6 @@ import random
 import sys
 
 import numpy as np
-from comet_ml import Experiment
 import tensorflow as tf
 from tensorflow.keras import layers
 import keras
