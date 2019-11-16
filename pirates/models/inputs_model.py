@@ -15,6 +15,7 @@ from shapely.geometry import box
 import cv2
 
 # Keras
+import keras
 from keras_preprocessing.image.iterator import Iterator
 
 LABELMAP = {
@@ -75,12 +76,12 @@ class CaribbeanDataset(Iterator):
         label_col=None,
         batch_size=1,
         crop_buffer=0.5,
-        shuffle=True,
-        augment=False,
+        train=False,
         seed=0,
         image_preprocessing=None,
         label_preprocessing=None,
         img_shape=None,
+        n_classes=-1,
         *args,
         **kwargs,
     ):
@@ -107,8 +108,9 @@ class CaribbeanDataset(Iterator):
         self._label_col = label_col
         self._id_col = id_col
         self._crop_buffer = crop_buffer
-        self._augment = augment
+        self._is_train = train
         self._img_shape = img_shape
+        self._n_classes = n_classes
         # Preprocessing image function
         self.image_preprocessing = image_preprocessing
         self.label_preprocessing = label_preprocessing
@@ -116,7 +118,7 @@ class CaribbeanDataset(Iterator):
         super().__init__(
             n=self.__len__(),
             batch_size=batch_size,
-            shuffle=shuffle,
+            shuffle=train,
             seed=seed,
             *args,
             **kwargs,
@@ -159,10 +161,13 @@ class CaribbeanDataset(Iterator):
         ]
         # Stack lists into numpy arrays
         example_ids = np.asarray(example_ids)
-        batch_Y = np.asarray(batch_Y)
+        batch_Y = keras.utils.to_categorical(batch_Y, num_classes=self._n_classes)
         # Pad and stack images
         # batch_X = self._pad_and_stack(batch_X)
         batch_X = np.stack(batch_X, axis=0)
+
+        if self._is_train:
+            return batch_X, batch_Y
         return example_ids, batch_X, batch_Y
 
     def _get_sample(self, idx):
@@ -185,7 +190,7 @@ class CaribbeanDataset(Iterator):
         geom = row.geometry
         if self._crop_buffer > 0:
             geom = geom.buffer(self._crop_buffer)
-        if self._augment:
+        if self._is_train:
             aug_buffer = np.random.uniform(*self.augmentation_params["buffer_jitter"])
             geom = geom.buffer(aug_buffer)
         # Load image data
@@ -200,7 +205,7 @@ class CaribbeanDataset(Iterator):
         # hack for different opencv versions
         contours, hierarchy = result if len(result) == 2 else result[1:3]
         center, _, angle = cv2.minAreaRect(contours[0])
-        if self._augment:
+        if self._is_train:
             angle_jitter = np.random.uniform(*self.augmentation_params["angle_jitter"])
             angle += angle_jitter
         rot = cv2.getRotationMatrix2D(center, angle - 90, 1)
@@ -283,8 +288,8 @@ def get_dataset_generator(
         label_col="roof_material",
         id_col="id",
         batch_size=batch_size,
-        augment=train,
-        shuffle=train,
+        train=train,
+        n_classes=len(LABELMAP),
         image_preprocessing=lambda x: resize_with_pad(x, *img_dims),
         label_preprocessing=lambda x: LABELMAP[x],
         crop_buffer=0.5,
