@@ -39,12 +39,13 @@ class CollectBatchStats(tf.keras.callbacks.Callback):
     self.model.reset_metrics()
 
 
-def transfer_train(train_generator, validation_generator):
+def transfer_train(train_generator, validation_generator, 
+                    train_all=False, BATCH_SIZE=100,
+                    N_EPOCHS=10):
 
 
-    IMAGE_SHAPE = X_train.shape[1:]
-    N_SAMPLES=X_train.shape[0]
-    BATCH_SIZE=100
+    IMAGE_SHAPE = train_generator._img_shape
+    N_SAMPLES=train_generator._num_examples
     NUM_CLASSES = len(LABELS) 
 
     feature_extractor_url="https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
@@ -53,10 +54,9 @@ def transfer_train(train_generator, validation_generator):
                                             trainable=True,
                                             input_shape=IMAGE_SHAPE)
 
-    feature_batch = feature_extractor_layer(X_train)
-
     # Freeze feature extrcator, train only new classifier layer
-    feature_extractor_layer.trainable = False
+    if train_all == False:
+        feature_extractor_layer.trainable = False
 
     model = tf.keras.Sequential([
       feature_extractor_layer,
@@ -71,24 +71,26 @@ def transfer_train(train_generator, validation_generator):
       loss='binary_crossentropy',
       metrics=['acc'])
 
-    #steps_per_epoch = np.ceil(N_SAMPLES/BATCH_SIZE)
 
     batch_stats_callback = CollectBatchStats()
 
-    history = model.fit_generator(train_generator, epochs=2,
+    history = model.fit_generator(train_generator, epochs=N_EPOCHS,
                                   batch_size=BATCH_SIZE,
                                   validation_data=validation_generator,
                                   callbacks = [batch_stats_callback])
-    '''
-    history = model.fit(X_train, y_train, epochs=10,
-                                  callbacks = [batch_stats_callback])
-    '''
-    probabilities = model.predict_generator(validation_generator, 2000)
+
+    probabilities = []
+    y_test_all = []
+    for test_id, X_test, y_test in validation_generator:
+        y_test_all += y_test.tolist()
+        probabilities += model.predict(X_test).tolist()
     
-    visualize.plot_confusion_matrix(np.argmax(y_test, axis=-1), np.argmax(y_pred, axis=-1),
+    visualize.plot_confusion_matrix(np.argmax(y_test, axis=-1), 
+            np.argmax(probabilities, axis=-1),
             classes=LABELS,
             normalize=True,
             experiment=experiment)
+
 
 if __name__=='__main__':
     RATIO=1.33
