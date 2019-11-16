@@ -18,8 +18,6 @@ import tensorflow_hub as hub
 
 from pirates.visualization import visualize
 
-experiment = Experiment(api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
-                        project_name="piratesofthecaribbean", workspace="florpi")
 LABELS = [
     "healthy_metal", 
     "irregular_metal", 
@@ -43,6 +41,8 @@ def transfer_train(train_generator, validation_generator,
                     train_all=False, BATCH_SIZE=100,
                     N_EPOCHS=10):
 
+    experiment = Experiment(api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
+                        project_name="piratesofthecaribbean", workspace="florpi")
 
     IMAGE_SHAPE = train_generator._img_shape
     N_SAMPLES=train_generator._num_examples
