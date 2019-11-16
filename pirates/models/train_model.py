@@ -44,8 +44,8 @@ def transfer_train(train_generator, validation_generator):
 
     IMAGE_SHAPE = X_train.shape[1:]
     N_SAMPLES=X_train.shape[0]
-    BATCH_SIZE=10
-    NUM_CLASSES = len(np.unique(y_train)) 
+    BATCH_SIZE=100
+    NUM_CLASSES = len(LABELS) 
 
     feature_extractor_url="https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
 
