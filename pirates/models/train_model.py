@@ -44,7 +44,7 @@ def transfer_train(train_generator, validation_generator,
     experiment = Experiment(api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
                         project_name="piratesofthecaribbean", workspace="florpi")
 
-    IMAGE_SHAPE = train_generator._img_shape
+    IMAGE_SHAPE = train_generator._img_shape + (3,)
     N_SAMPLES=train_generator._num_examples
     NUM_CLASSES = len(LABELS) 
 
@@ -75,7 +75,6 @@ def transfer_train(train_generator, validation_generator,
     batch_stats_callback = CollectBatchStats()
 
     history = model.fit_generator(train_generator, epochs=N_EPOCHS,
-                                  batch_size=BATCH_SIZE,
                                   validation_data=validation_generator,
                                   callbacks = [batch_stats_callback])
 
