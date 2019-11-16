@@ -39,12 +39,12 @@ class CollectBatchStats(tf.keras.callbacks.Callback):
     self.model.reset_metrics()
 
 
-def transfer_train(train_generator, validation_generator):
+def transfer_train(train_generator, validation_generator, 
+                    train_all=False, BATCH_SIZE=100):
 
 
-    IMAGE_SHAPE = X_train.shape[1:]
-    N_SAMPLES=X_train.shape[0]
-    BATCH_SIZE=100
+    IMAGE_SHAPE = train_generator._img_shape
+    N_SAMPLES=train_generator._num_examples
     NUM_CLASSES = len(LABELS) 
 
     feature_extractor_url="https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
@@ -56,7 +56,8 @@ def transfer_train(train_generator, validation_generator):
     feature_batch = feature_extractor_layer(X_train)
 
     # Freeze feature extrcator, train only new classifier layer
-    feature_extractor_layer.trainable = False
+    if train_all == False:
+        feature_extractor_layer.trainable = False
 
     model = tf.keras.Sequential([
       feature_extractor_layer,
