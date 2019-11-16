@@ -194,7 +194,9 @@ class CaribbeanDataset(Iterator):
         out_img = np.transpose(out_img, [1, 2, 0])
         mask = out_img[..., -1]
         # Crop and fix its rotation
-        contours, ret = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        result = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # hack for different opencv versions
+        contours, hierarchy = result if len(result) == 2 else result[1:3]
         center, _, angle = cv2.minAreaRect(contours[0])
         if self._augment:
             angle_jitter = np.random.uniform(*self.augmentation_params["angle_jitter"])
