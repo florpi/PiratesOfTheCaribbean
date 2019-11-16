@@ -80,6 +80,7 @@ class CaribbeanDataset(Iterator):
         seed=0,
         image_preprocessing=None,
         label_preprocessing=None,
+        img_shape=None,
         *args,
         **kwargs,
     ):
@@ -107,6 +108,7 @@ class CaribbeanDataset(Iterator):
         self._id_col = id_col
         self._crop_buffer = crop_buffer
         self._augment = augment
+        self._img_shape = img_shape
         # Preprocessing image function
         self.image_preprocessing = image_preprocessing
         self.label_preprocessing = label_preprocessing
@@ -208,7 +210,8 @@ class CaribbeanDataset(Iterator):
         # Crop image
         thresh = cv2.threshold(mask, 0, 255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)[1]
         # Find contour and sort by contour area
-        cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        result = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts, hierarchy = result if len(result) == 2 else result[1:3]
         x, y, w, h = cv2.boundingRect(cnts[0])
         crop_img = img[y : y + h, x : x + w].copy()
         h, w, _ = crop_img.shape
@@ -285,5 +288,6 @@ def get_dataset_generator(
         image_preprocessing=lambda x: resize_with_pad(x, *img_dims),
         label_preprocessing=lambda x: LABELMAP[x],
         crop_buffer=0.5,
+        img_shape=img_dims,
     )
     return dataset
