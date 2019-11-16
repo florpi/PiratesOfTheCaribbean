@@ -80,6 +80,7 @@ class CaribbeanDataset(Iterator):
         seed=0,
         image_preprocessing=None,
         label_preprocessing=None,
+        img_shape=None,
         *args,
         **kwargs,
     ):
@@ -107,6 +108,7 @@ class CaribbeanDataset(Iterator):
         self._id_col = id_col
         self._crop_buffer = crop_buffer
         self._augment = augment
+        self._img_shape = img_shape
         # Preprocessing image function
         self.image_preprocessing = image_preprocessing
         self.label_preprocessing = label_preprocessing
@@ -286,5 +288,6 @@ def get_dataset_generator(
         image_preprocessing=lambda x: resize_with_pad(x, *img_dims),
         label_preprocessing=lambda x: LABELMAP[x],
         crop_buffer=0.5,
+        img_shape=img_dims,
     )
     return dataset
