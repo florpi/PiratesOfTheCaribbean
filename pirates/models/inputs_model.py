@@ -208,7 +208,8 @@ class CaribbeanDataset(Iterator):
         # Crop image
         thresh = cv2.threshold(mask, 0, 255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)[1]
         # Find contour and sort by contour area
-        cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        result = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts, hierarchy = result if len(result) == 2 else result[1:3]
         x, y, w, h = cv2.boundingRect(cnts[0])
         crop_img = img[y : y + h, x : x + w].copy()
         h, w, _ = crop_img.shape
