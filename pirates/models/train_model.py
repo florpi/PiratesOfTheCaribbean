@@ -1,7 +1,5 @@
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from comet_ml import Experiment
 
 import logging
 
@@ -13,7 +11,6 @@ import random
 import sys
 
 import numpy as np
-from comet_ml import Experiment
 import tensorflow as tf
 from tensorflow.keras import layers
 import keras
@@ -23,6 +20,13 @@ from pirates.visualization import visualize
 
 experiment = Experiment(api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
                         project_name="piratesofthecaribbean", workspace="florpi")
+LABELS = [
+    "healthy_metal", 
+    "irregular_metal", 
+    "concrete_cement", 
+    "incomplete",
+    "other",
+]
 
 class CollectBatchStats(tf.keras.callbacks.Callback):
   def __init__(self):
@@ -35,7 +39,7 @@ class CollectBatchStats(tf.keras.callbacks.Callback):
     self.model.reset_metrics()
 
 
-def transfer_train(X_train, y_train, X_test, y_test):
+def transfer_train(train_generator, validation_generator):
 
 
     IMAGE_SHAPE = X_train.shape[1:]
@@ -71,7 +75,6 @@ def transfer_train(X_train, y_train, X_test, y_test):
 
     batch_stats_callback = CollectBatchStats()
 
-    '''
     history = model.fit_generator(train_generator, epochs=2,
                                   batch_size=BATCH_SIZE,
                                   validation_data=validation_generator,
@@ -79,11 +82,11 @@ def transfer_train(X_train, y_train, X_test, y_test):
     '''
     history = model.fit(X_train, y_train, epochs=10,
                                   callbacks = [batch_stats_callback])
- 
-    y_pred = model.predict(X_test)
+    '''
+    probabilities = model.predict_generator(validation_generator, 2000)
     
     visualize.plot_confusion_matrix(np.argmax(y_test, axis=-1), np.argmax(y_pred, axis=-1),
-            classes=['Roto', 'Bonito'], 
+            classes=LABELS,
             normalize=True,
             experiment=experiment)
 
