@@ -75,8 +75,8 @@ def transfer_train(train_generator, validation_generator,
     batch_stats_callback = CollectBatchStats()
 
     history = model.fit_generator(train_generator, epochs=N_EPOCHS,
-                                  validation_data=validation_generator,
-                                  callbacks = [batch_stats_callback])
+                                  validation_data=validation_generator)
+    #                              callbacks = [batch_stats_callback])
 
     probabilities = []
     y_test_all = []
