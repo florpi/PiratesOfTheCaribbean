@@ -1,6 +1,6 @@
 import logging
 
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.DEBUG)
 from glob import glob
 import numpy as np
 import pandas as pd
@@ -116,7 +116,7 @@ class CaribbeanDataset(Iterator):
         self.label_preprocessing = label_preprocessing
         # Init ImageDataGenerator
         super().__init__(
-            n=self.__len__(),
+            n=self._num_examples,
             batch_size=batch_size,
             shuffle=train,
             seed=seed,
@@ -153,6 +153,7 @@ class CaribbeanDataset(Iterator):
         """
         Get batch of samples.
         """
+        logging.debug(f"Retrieving samples for: {idxs}")
         # Create list of tuples [(id, img, label), (id, img, label)...]
         list_of_tuples = [self._get_sample(idx) for idx in idxs]
         # Create batch by transposing list of tuples into list of lists
@@ -238,11 +239,6 @@ class CaribbeanDataset(Iterator):
         if self.label_preprocessing:
             label = self.label_preprocessing(label)
         return example_id, crop_img, label
-
-    def __len__(self):
-        """
-        """
-        return self._num_examples
 
 
 def _read_geodataframe(path):
