@@ -66,7 +66,7 @@ class CaribbeanDataset(Iterator):
     """
     """
 
-    augmentation_params = {"buffer_jitter": (-1.5, 1.5), "angle_jitter": (-10, 10)}
+    augmentation_params = {"buffer_jitter": (-2.5, 2.5), "angle_jitter": (-15, 15)}
 
     def __init__(
         self,
@@ -193,7 +193,11 @@ class CaribbeanDataset(Iterator):
             geom = geom.buffer(self._crop_buffer)
         if self._is_train:
             aug_buffer = np.random.uniform(*self.augmentation_params["buffer_jitter"])
-            geom = geom.buffer(aug_buffer)
+            aug_geom = geom.buffer(aug_buffer)
+            geom_area = geom.area
+            # Used augmented geometry only when the area changes less than 10%
+            if abs(aug_geom.area - geom_area)/geom_area < 0.1:
+                geom = aug_geom    
         # Load image data
         raster = rasterio.open(self._zone_to_image[row["zone"]])
         out_img, out_transform = rasterio.mask.mask(
