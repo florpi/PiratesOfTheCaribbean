@@ -19,3 +19,4 @@ keras
 tensorflow>=1.14.0
 tensorflow_hub
 comet_ml
+tenacity>=6.0.0
