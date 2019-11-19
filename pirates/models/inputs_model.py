@@ -5,6 +5,9 @@ from glob import glob
 import numpy as np
 import pandas as pd
 
+# re-trying
+from tenacity import retry, stop_after_attempt, wait_random
+
 # Geo-processing
 import geopandas as gpd
 import rasterio
@@ -111,6 +114,8 @@ class CaribbeanDataset(Iterator):
         self._is_train = train
         self._img_shape = img_shape
         self._n_classes = n_classes
+        # Raster file handlers
+        self._raster_handlers = {k: rasterio.open(v) for k, v in zone_to_image.items()}
         # Preprocessing image function
         self.image_preprocessing = image_preprocessing
         self.label_preprocessing = label_preprocessing
@@ -182,6 +187,14 @@ class CaribbeanDataset(Iterator):
             logging.error(self._get_dataframe(idx).loc[idx, :])
             raise
 
+    @retry(reraise=True, stop=stop_after_attempt(4), wait=wait_random(min=0.1, max=1))
+    def _extract_from_raster(self, zone, geom):
+        """
+        Extract crop from raster.
+        """
+        raster = self._raster_handlers[zone]
+        return rasterio.mask.mask(dataset=raster, shapes=[geom], crop=True)
+
     def ___get_sample__(self, idx):
         """
         """
@@ -198,13 +211,10 @@ class CaribbeanDataset(Iterator):
             aug_geom_area = aug_geom.area
             # Used augmented geometry only when the area changes less than 10%
             # and the augmented area is greater than 2m2
-            if abs(aug_geom_area - geom_area)/geom_area < 0.1 and aug_geom_area > 2.:
-                geom = aug_geom    
+            if abs(aug_geom_area - geom_area) / geom_area < 0.1 and aug_geom_area > 2.0:
+                geom = aug_geom
         # Load image data
-        raster = rasterio.open(self._zone_to_image[row["zone"]])
-        out_img, out_transform = rasterio.mask.mask(
-            dataset=raster, shapes=[geom], crop=True
-        )
+        out_img, out_transform = self._extract_from_raster(row["zone"], geom)
         out_img = np.transpose(out_img, [1, 2, 0])
         mask = out_img[..., -1]
         # Crop and fix its rotation
