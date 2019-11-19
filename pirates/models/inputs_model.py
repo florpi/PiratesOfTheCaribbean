@@ -195,8 +195,10 @@ class CaribbeanDataset(Iterator):
             aug_buffer = np.random.uniform(*self.augmentation_params["buffer_jitter"])
             aug_geom = geom.buffer(aug_buffer)
             geom_area = geom.area
+            aug_geom_area = aug_geom.area
             # Used augmented geometry only when the area changes less than 10%
-            if abs(aug_geom.area - geom_area)/geom_area < 0.1:
+            # and the augmented area is greater than 2m2
+            if abs(aug_geom_area - geom_area)/geom_area < 0.1 and aug_geom_area > 2.:
                 geom = aug_geom    
         # Load image data
         raster = rasterio.open(self._zone_to_image[row["zone"]])
