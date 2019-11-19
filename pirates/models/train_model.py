@@ -38,6 +38,7 @@ class CollectBatchStats(tf.keras.callbacks.Callback):
 
 
 def transfer_train(train_generator, validation_generator, 
+                    test_generator,
                     train_all=False, BATCH_SIZE=100,
                     N_EPOCHS=10):
 
@@ -79,16 +80,30 @@ def transfer_train(train_generator, validation_generator,
     #                              callbacks = [batch_stats_callback])
 
     probabilities = []
-    y_test_all = []
-    for test_id, X_test, y_test in validation_generator:
-        y_test_all += y_test.tolist()
-        probabilities += model.predict(X_test).tolist()
+    y_val_all = []
+    for  X_val, y_val in validation_generator:
+        y_val_all += y_val.tolist()
+        probabilities += model.predict(X_val).tolist()
     
-    visualize.plot_confusion_matrix(np.argmax(y_test, axis=-1), 
+    visualize.plot_confusion_matrix(np.argmax(y_val, axis=-1), 
             np.argmax(probabilities, axis=-1),
             classes=LABELS,
             normalize=True,
             experiment=experiment)
+
+    visualize.plot_confusion_matrix(np.argmax(y_val, axis=-1), 
+            np.argmax(probabilities, axis=-1),
+            classes=LABELS,
+            normalize=False,
+            experiment=experiment)
+
+    probabilities = []
+    test_IDs = []
+    for  test_ID, X_test, y_test in test_generator:
+        test_IDs.append(test_ID)
+        probabilities += model.predict(X_test).tolist()
+    
+    print(probabilities)
 
 
 if __name__=='__main__':
