@@ -79,11 +79,13 @@ class CaribbeanDataset(Iterator):
         label_col=None,
         batch_size=1,
         crop_buffer=0.5,
-        train=False,
+        augment=False,
         seed=0,
         image_preprocessing=None,
         label_preprocessing=None,
         img_shape=None,
+        return_ids=False,
+        return_labels=True,
         n_classes=-1,
         *args,
         **kwargs,
@@ -111,9 +113,11 @@ class CaribbeanDataset(Iterator):
         self._label_col = label_col
         self._id_col = id_col
         self._crop_buffer = crop_buffer
-        self._is_train = train
+        self._augment = augment
         self._img_shape = img_shape
         self._n_classes = n_classes
+        self._return_ids = return_ids
+        self._return_labels = return_labels
         # Raster file handlers
         self._raster_handlers = {k: rasterio.open(v) for k, v in zone_to_image.items()}
         # Preprocessing image function
@@ -171,10 +175,13 @@ class CaribbeanDataset(Iterator):
         # Pad and stack images
         # batch_X = self._pad_and_stack(batch_X)
         batch_X = np.stack(batch_X, axis=0)
-
-        if self._is_train:
-            return batch_X, batch_Y
-        return example_ids, batch_X, batch_Y
+        # return outputs according to _return_ids and _return_labels
+        batch = (batch_X,)
+        if self._return_labels:
+            batch = batch + (batch_Y,)
+        if self._return_ids:
+            batch = (example_ids,) + batch
+        return batch
 
     def _get_sample(self, idx):
         """
@@ -204,7 +211,7 @@ class CaribbeanDataset(Iterator):
         geom = row.geometry
         if self._crop_buffer > 0:
             geom = geom.buffer(self._crop_buffer)
-        if self._is_train:
+        if self._augment:
             aug_buffer = np.random.uniform(*self.augmentation_params["buffer_jitter"])
             aug_geom = geom.buffer(aug_buffer)
             geom_area = geom.area
@@ -222,7 +229,7 @@ class CaribbeanDataset(Iterator):
         # hack for different opencv versions
         contours, hierarchy = result if len(result) == 2 else result[1:3]
         center, _, angle = cv2.minAreaRect(contours[0])
-        if self._is_train:
+        if self._augment:
             angle_jitter = np.random.uniform(*self.augmentation_params["angle_jitter"])
             angle += angle_jitter
         rot = cv2.getRotationMatrix2D(center, angle - 90, 1)
@@ -266,7 +273,13 @@ def _read_geodataframe(path):
 
 
 def get_dataset_generator(
-    imgs_pattern, dataframes_pattern, batch_size, img_dims, train=False
+    imgs_pattern,
+    dataframes_pattern,
+    batch_size,
+    img_dims,
+    augment=False,
+    return_ids=False,
+    return_labels=True,
 ):
     """
     Function wrapper around CaribbeanDataset.
@@ -297,10 +310,12 @@ def get_dataset_generator(
     dataset = CaribbeanDataset(
         dataframes,
         zone_to_image,
-        label_col="roof_material",
-        id_col="id",
+        label_col="roof_material" if return_labels else None,
+        id_col="id" if return_ids else None,
         batch_size=batch_size,
-        train=train,
+        augment=augment,
+        return_ids=return_ids,
+        return_labels=return_labels,
         n_classes=len(LABELMAP),
         image_preprocessing=lambda x: resize_with_pad(x, *img_dims),
         label_preprocessing=lambda x: LABELMAP[x],
