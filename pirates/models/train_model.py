@@ -105,6 +105,17 @@ def transfer_train(train_generator, validation_generator,
     
     print(probabilities)
 
+    probabilities = np.asarray(probabilities)
+    print('probabilities shape')
+    print(probabilities.shape)
+    test_IDs = np.asarray(test_IDs)
+    submission = np.vstack((test_IDs, probabilities)).T
+    print('submission shape')
+    print(submission.shape)
+
+    # Save test csv file for submission
+    np.savetxt("submission.csv",  sumbission, delimiter=",")
+
 
 if __name__=='__main__':
     RATIO=1.33
@@ -118,3 +129,4 @@ if __name__=='__main__':
     y_test = keras.utils.to_categorical(np.random.randint(2, size=10, dtype=np.int32))
 
     transfer_train(X_train, y_train, X_test, y_test)
+
