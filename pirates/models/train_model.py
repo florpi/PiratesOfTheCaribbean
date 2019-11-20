@@ -82,7 +82,8 @@ def transfer_train(train_generator, validation_generator,
 
     probabilities = []
     y_val_all = []
-    for  X_val, y_val in validation_generator:
+    for i in range(len(validation_generator)):
+        X_val, y_val = next(validation_generator)
         y_val_all += y_val.tolist()
         probabilities += model.predict(X_val).tolist()
     
@@ -100,10 +101,10 @@ def transfer_train(train_generator, validation_generator,
 
     probabilities = []
     test_IDs = []
-    for  test_ID, X_test, y_test in test_generator:
+    for i in range(len(test_generator)):
+        test_ID, X_test, y_test = next(test_generator)
         test_IDs.append(test_ID)
         probabilities += model.predict(X_test).tolist()
-    
     print(probabilities)
 
     probabilities = np.asarray(probabilities)
