@@ -114,7 +114,7 @@ def transfer_train(train_generator, validation_generator,
     print(submission.shape)
 
     # Save test csv file for submission
-    np.savetxt("submission.csv",  sumbission, delimiter=",")
+    np.savetxt("submission.csv",  submission, delimiter=",")
 
 
 if __name__=='__main__':
