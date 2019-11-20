@@ -86,6 +86,18 @@ def transfer_train(train_generator, validation_generator,
         X_val, y_val = next(validation_generator)
         y_val_all += y_val.tolist()
         probabilities += model.predict(X_val).tolist()
+
+    print('y_val_all')
+    print(y_val_all)
+    print('probabilities')
+    print(probabilities)
+
+    print('argmax')
+    print(np.argmax(y_val, axis=-1))
+    print(np.argmax(y_val, axis=-1).shape)
+
+    print(np.argmax(probabilities, axis=-1))
+    print(np.argmax(probabilities, axis=-1).shape)
     
     visualize.plot_confusion_matrix(np.argmax(y_val, axis=-1), 
             np.argmax(probabilities, axis=-1),
