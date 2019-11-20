@@ -92,10 +92,11 @@ def transfer_train(train_generator, validation_generator,
     print('probabilities')
     print(probabilities)
 
-    print('argmax')
+    print('argmax y_val_all')
     print(np.argmax(y_val_all, axis=-1))
     print(np.argmax(y_val_all, axis=-1).shape)
 
+    print('argmax prob')
     print(np.argmax(probabilities, axis=-1))
     print(np.argmax(probabilities, axis=-1).shape)
     
