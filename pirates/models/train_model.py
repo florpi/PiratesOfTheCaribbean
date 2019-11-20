@@ -93,19 +93,19 @@ def transfer_train(train_generator, validation_generator,
     print(probabilities)
 
     print('argmax')
-    print(np.argmax(y_val, axis=-1))
-    print(np.argmax(y_val, axis=-1).shape)
+    print(np.argmax(y_val_all, axis=-1))
+    print(np.argmax(y_val_all, axis=-1).shape)
 
     print(np.argmax(probabilities, axis=-1))
     print(np.argmax(probabilities, axis=-1).shape)
     
-    visualize.plot_confusion_matrix(np.argmax(y_val, axis=-1), 
+    visualize.plot_confusion_matrix(np.argmax(y_val_all, axis=-1), 
             np.argmax(probabilities, axis=-1),
             classes=LABELS,
             normalize=True,
             experiment=experiment)
 
-    visualize.plot_confusion_matrix(np.argmax(y_val, axis=-1), 
+    visualize.plot_confusion_matrix(np.argmax(y_val_all, axis=-1), 
             np.argmax(probabilities, axis=-1),
             classes=LABELS,
             normalize=False,
