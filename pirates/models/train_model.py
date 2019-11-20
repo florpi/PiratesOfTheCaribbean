@@ -39,7 +39,7 @@ class CollectBatchStats(tf.keras.callbacks.Callback):
 
 def transfer_train(train_generator, validation_generator, 
                     test_generator,
-                    train_all=False, BATCH_SIZE=100,
+                    train_all=False, 
                     N_EPOCHS=10):
 
     experiment = Experiment(api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
