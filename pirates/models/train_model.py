@@ -103,14 +103,13 @@ def transfer_train(train_generator, validation_generator,
     probabilities = []
     test_IDs = []
     for i in range(len(test_generator)):
-        test_ID, X_test, y_test = next(test_generator)
+        test_ID, X_test = next(test_generator)
         test_IDs.append(test_ID)
         probabilities += model.predict(X_test).tolist()
 
     probabilities = np.asarray(probabilities)
     test_IDs = np.asarray(test_IDs)
     submission = np.vstack((test_IDs, probabilities)).T
-
     # Save test csv file for submission
     np.savetxt("submission.csv",  submission, delimiter=",")
 
