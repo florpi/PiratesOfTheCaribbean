@@ -87,18 +87,6 @@ def transfer_train(train_generator, validation_generator,
         y_val_all += y_val.tolist()
         probabilities += model.predict(X_val).tolist()
 
-    print('y_val_all')
-    print(y_val_all)
-    print('probabilities')
-    print(probabilities)
-
-    print('argmax y_val_all')
-    print(np.argmax(y_val_all, axis=-1))
-    print(np.argmax(y_val_all, axis=-1).shape)
-
-    print('argmax prob')
-    print(np.argmax(probabilities, axis=-1))
-    print(np.argmax(probabilities, axis=-1).shape)
     
     visualize.plot_confusion_matrix(np.argmax(y_val_all, axis=-1), 
             np.argmax(probabilities, axis=-1),
@@ -118,15 +106,10 @@ def transfer_train(train_generator, validation_generator,
         test_ID, X_test, y_test = next(test_generator)
         test_IDs.append(test_ID)
         probabilities += model.predict(X_test).tolist()
-    print(probabilities)
 
     probabilities = np.asarray(probabilities)
-    print('probabilities shape')
-    print(probabilities.shape)
     test_IDs = np.asarray(test_IDs)
     submission = np.vstack((test_IDs, probabilities)).T
-    print('submission shape')
-    print(submission.shape)
 
     # Save test csv file for submission
     np.savetxt("submission.csv",  submission, delimiter=",")
