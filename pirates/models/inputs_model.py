@@ -127,7 +127,7 @@ class CaribbeanDataset(Iterator):
         super().__init__(
             n=self._num_examples,
             batch_size=batch_size,
-            shuffle=train,
+            shuffle=augment,
             seed=seed,
             *args,
             **kwargs,
@@ -170,8 +170,14 @@ class CaribbeanDataset(Iterator):
             list(tuples) for tuples in zip(*list_of_tuples)
         ]
         # Stack lists into numpy arrays
-        example_ids = np.asarray(example_ids)
-        batch_Y = keras.utils.to_categorical(batch_Y, num_classes=self._n_classes)
+        if example_ids[0] is not None:
+            example_ids = np.asarray(example_ids)
+        else:
+            example_ids = None
+        if batch_Y[0] is not None:
+            batch_Y = keras.utils.to_categorical(batch_Y, num_classes=self._n_classes)
+        else:
+            batch_Y = None        
         # Pad and stack images
         # batch_X = self._pad_and_stack(batch_X)
         batch_X = np.stack(batch_X, axis=0)
@@ -259,7 +265,7 @@ class CaribbeanDataset(Iterator):
         # Apply preprocessing function
         if self.image_preprocessing:
             crop_img = self.image_preprocessing(crop_img)
-        if self.label_preprocessing:
+        if self._label_col is not None and self.label_preprocessing:
             label = self.label_preprocessing(label)
         return example_id, crop_img, label
 
