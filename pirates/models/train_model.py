@@ -34,6 +34,7 @@ def transfer_train(
     train_generator,
     validation_generator,
     test_generator,
+    path_to_save ="/content/drive/My Drive/pirates/",
     train_all=False,
     N_EPOCHS=10,
 ):
@@ -79,6 +80,8 @@ def transfer_train(
     )
     #                              callbacks = [batch_stats_callback])
     print("Finished training!")
+    model.save(path_to_save + 'modelito_de_tejaditos.h5')
+    print('Model saved in drive!')
 
     probabilities = []
     y_val_all = []
@@ -114,7 +117,7 @@ def transfer_train(
     test_IDs = np.asarray(test_IDs)
     submission = np.vstack((test_IDs, probabilities)).T
     # Save test csv file for submission
-    np.savetxt("submission.csv", submission, delimiter=",")
+    np.savetxt(path_to_save + "submission.csv", submission, delimiter=",")
 
 
 if __name__ == "__main__":
