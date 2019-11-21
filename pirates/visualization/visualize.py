@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 
+
 def plot_confusion_matrix(
     y_true,
     y_pred,
@@ -31,7 +32,7 @@ def plot_confusion_matrix(
     else:
         print("Confusion matrix, without normalization")
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10, 10))
     im = ax.imshow(cm, interpolation="nearest", cmap=cmap)
     ax.figure.colorbar(im, ax=ax)
     # We want to show all ticks...
@@ -67,4 +68,3 @@ def plot_confusion_matrix(
         experiment.log_figure(figure_name="Confusion Matrix", figure=fig)
     else:
         return cm, ax
-
