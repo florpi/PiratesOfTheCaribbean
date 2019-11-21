@@ -10,14 +10,17 @@ import random
 import sys
 
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import layers
 import keras
 import tensorflow_hub as hub
+from tqdm.autonotebook import tqdm
 
 from pirates.visualization import visualize
 
-LABELS = ["healthy_metal", "irregular_metal", "concrete_cement", "incomplete", "other"]
+LABELS = ["concrete_cement", "healthy_metal", "incomplete", "irregular_metal", "other"]
+
 
 class CollectBatchStats(tf.keras.callbacks.Callback):
     def __init__(self):
@@ -31,11 +34,7 @@ class CollectBatchStats(tf.keras.callbacks.Callback):
 
 
 def transfer_train(
-    train_generator,
-    validation_generator,
-    test_generator,
-    train_all=False,
-    N_EPOCHS=10,
+    train_generator, validation_generator, test_generator, train_all=False, N_EPOCHS=10
 ):
 
     experiment = Experiment(
@@ -82,7 +81,7 @@ def transfer_train(
 
     probabilities = []
     y_val_all = []
-    for i in range(len(validation_generator)):
+    for i in tqdm(range(len(validation_generator)), desc="valset"):
         X_val, y_val = next(validation_generator)
         y_val_all += y_val.tolist()
         probabilities += model.predict(X_val).tolist()
@@ -105,16 +104,27 @@ def transfer_train(
 
     probabilities = []
     test_IDs = []
-    for i in range(len(test_generator)):
+    for i in tqdm(range(len(test_generator)), desc="testset"):
         test_ID, X_test = next(test_generator)
         test_IDs.append(test_ID)
-        probabilities += model.predict(X_test).tolist()
+        probabilities.append(model.predict(X_test).tolist())
 
     probabilities = np.asarray(probabilities)
-    test_IDs = np.asarray(test_IDs)
-    submission = np.vstack((test_IDs, probabilities)).T
+    test_IDs = np.reshape(np.asarray(test_IDs), [-1, 1])
+    submission = np.concatenate([test_IDs, probabilities], axis=1)
+    submission = pd.DataFrame(
+        submission,
+        columns=[
+            "id",
+            "concrete_cement",
+            "healthy_metal",
+            "incomplete",
+            "irregular_metal",
+            "other",
+        ],
+    )
     # Save test csv file for submission
-    np.savetxt("submission.csv", submission, delimiter=",")
+    submission.to_csv("submission.csv", delimiter=",")
 
 
 if __name__ == "__main__":
