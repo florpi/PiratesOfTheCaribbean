@@ -124,7 +124,7 @@ def transfer_train(
         ],
     )
     # Save test csv file for submission
-    submission.to_csv("submission.csv", delimiter=",")
+    submission.to_csv("submission.csv")
 
 
 if __name__ == "__main__":
