@@ -127,7 +127,7 @@ class CaribbeanDataset(Iterator):
         super().__init__(
             n=self._num_examples,
             batch_size=batch_size,
-            shuffle=train,
+            shuffle=augment,
             seed=seed,
             *args,
             **kwargs,
