@@ -32,7 +32,7 @@ def plot_confusion_matrix(
     else:
         print("Confusion matrix, without normalization")
 
-    fig, ax = plt.subplots(figsize=(14, 14))
+    fig, ax = plt.subplots(figsize=(10, 10))
     im = ax.imshow(cm, interpolation="nearest", cmap=cmap)
     ax.figure.colorbar(im, ax=ax)
     # We want to show all ticks...

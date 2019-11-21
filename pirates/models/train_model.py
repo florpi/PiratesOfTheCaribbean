@@ -109,7 +109,7 @@ def transfer_train(
         test_IDs.append(test_ID)
         probabilities.append(model.predict(X_test).tolist())
 
-    probabilities = np.asarray(probabilities)
+    probabilities = np.reshape(np.asarray(probabilities), [-1, 5])
     test_IDs = np.reshape(np.asarray(test_IDs), [-1, 1])
     submission = np.concatenate([test_IDs, probabilities], axis=1)
     submission = pd.DataFrame(
