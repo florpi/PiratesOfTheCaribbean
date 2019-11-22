@@ -131,7 +131,7 @@ def transfer_train(
         ],
     )
     # Save test csv file for submission
-    np.savetxt(path_to_save + "submission.csv", submission, delimiter=",")
+    submission.to_csv(path_to_save + "submission.csv")
 
 
 if __name__ == "__main__":
