@@ -15,6 +15,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 import keras
 import tensorflow_hub as hub
+from sklearn.utils import class_weight
 from tqdm.autonotebook import tqdm
 
 from pirates.visualization import visualize
