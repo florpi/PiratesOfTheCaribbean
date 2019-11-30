@@ -16,6 +16,8 @@ from tensorflow.keras import layers
 import keras
 import tensorflow_hub as hub
 from tqdm.autonotebook import tqdm
+from kerastuner import CaribbeanModel
+from kerastuner.tuners import RandomSearch
 
 from pirates.visualization import visualize
 
@@ -33,74 +35,158 @@ class CollectBatchStats(tf.keras.callbacks.Callback):
         self.model.reset_metrics()
 
 
+def categorical_focal_loss(gamma=2.0, alpha=0.25):
+    """
+    Softmax version of focal loss.
+           m
+      FL = ∑  -alpha * (1 - p_o,c)^gamma * y_o,c * log(p_o,c)
+          c=1
+      where m = number of classes, c = class and o = observation
+    Parameters:
+      alpha -- the same as weighing factor in balanced cross entropy
+      gamma -- focusing parameter for modulating factor (1-p)
+    Default value:
+      gamma -- 2.0 as mentioned in the paper
+      alpha -- 0.25 as mentioned in the paper
+    References:
+        Official paper: https://arxiv.org/pdf/1708.02002.pdf
+        https://www.tensorflow.org/api_docs/python/tf/keras/backend/categorical_crossentropy
+    Usage:
+     model.compile(loss=[categorical_focal_loss(alpha=.25, gamma=2)], metrics=["accuracy"], optimizer=adam)
+    Credit:
+        https://github.com/umbertogriffo/focal-loss-keras/blob/master/losses.py
+    """
+
+    def categorical_focal_loss_fixed(y_true, y_pred):
+        """
+        :param y_true: A tensor of the same shape as `y_pred`
+        :param y_pred: A tensor resulting from a softmax
+        :return: Output tensor.
+        """
+
+        # Scale predictions so that the class probas of each sample sum to 1
+        y_pred /= K.sum(y_pred, axis=-1, keepdims=True)
+
+        # Clip the prediction value to prevent NaN's and Inf's
+        epsilon = K.epsilon()
+        y_pred = K.clip(y_pred, epsilon, 1.0 - epsilon)
+
+        # Calculate Cross Entropy
+        cross_entropy = -y_true * K.log(y_pred)
+
+        # Calculate Focal Loss
+        loss = alpha * K.pow(1 - y_pred, gamma) * cross_entropy
+
+        # Sum the losses in mini_batch
+        return K.sum(loss, axis=1)
+
+    return categorical_focal_loss_fixed
+
+
+class CaribbeanModel(HyperModel):
+    """
+    """
+
+    def __init__(self, experiment):
+        self.num_classes = len(LABELS)
+
+    def build(self, hp):
+        # Cannot tune feature extractor since each one requires a precise input_shape
+        # feature_extractor_url = hp.Choice(
+        #     "feature_extractor",
+        #     [
+        #         "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4",
+        #         "https://tfhub.dev/google/imagenet/nasnet_large/feature_vector/4",
+        #     ],
+        # )
+        feature_extractor_url = (
+            "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
+        )
+        feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True)
+
+        # Freeze feature extrcator, train only new classifier layer
+        feature_extractor_layer.trainable = hp.Choice(
+            "train_feature_extractor", values=[True, False]
+        )
+        # Define keras model
+        model = tf.keras.Sequential(
+            [
+                feature_extractor_layer,
+                layers.Dense(self.num_classes, activation="softmax"),
+            ]
+        )
+        # Print summary
+        model.summary()
+        # Loss layer
+        loss = hp.Choice(
+            "loss",
+            values=["binary_crossentropy", categorical_focal_loss(alpha=0.25, gamma=2)],
+        )
+        model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
+        return model
+
+    def run_trial(self, trial, *fit_args, **fit_kwargs):
+        """
+        """
+        experiment = Experiment(
+            api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
+            project_name="piratesofthecaribbean",
+            workspace="florpi",
+            auto_param_logging=False,
+        )
+        experiment.log_parameters(trial.hyperparameters)
+        with experiment.train():
+            super(self).run_trial(trial, *fit_args, **fit_kwargs)
+        # Run validation
+        with experiment.test():
+            probabilities = []
+            y_val_all = []
+            for X_val, y_val in tqdm(len(validation_generator), desc="valset"):
+                y_val_all += y_val.tolist()
+                probs = np.mean([model.predict(X_val) for model in models])
+                probabilities += probs.tolist()
+
+            visualize.plot_confusion_matrix(
+                np.argmax(y_val_all, axis=-1),
+                np.argmax(probabilities, axis=-1),
+                classes=LABELS,
+                normalize=True,
+                experiment=experiment,
+            )
+
+            visualize.plot_confusion_matrix(
+                np.argmax(y_val_all, axis=-1),
+                np.argmax(probabilities, axis=-1),
+                classes=LABELS,
+                normalize=False,
+                experiment=experiment,
+            )
+
+
 def transfer_train(
-    train_generator, validation_generator, test_generator, train_all=False, N_EPOCHS=10
+    train_generator,
+    validation_generator,
+    test_generator,
+    train_all=False,
+    n_epochs=10,
+    directory="my_dir",
 ):
 
-    experiment = Experiment(
-        api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
+    tuner = RandomSearch(
+        CaribbeanModel,
+        objective="val_accuracy",
+        max_trials=5,
+        executions_per_trial=3,
+        directory=directory,
         project_name="piratesofthecaribbean",
-        workspace="florpi",
-    )
-
-    IMAGE_SHAPE = train_generator._img_shape + (3,)
-    N_SAMPLES = train_generator._num_examples
-    NUM_CLASSES = len(LABELS)
-
-    feature_extractor_url = (
-        "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
-    )
-
-    feature_extractor_layer = hub.KerasLayer(
-        feature_extractor_url, trainable=True, input_shape=IMAGE_SHAPE
-    )
-
-    # Freeze feature extrcator, train only new classifier layer
-    if train_all == False:
-        feature_extractor_layer.trainable = False
-
-    model = tf.keras.Sequential(
-        [feature_extractor_layer, layers.Dense(NUM_CLASSES, activation="softmax")]
-    )
-
-    model.summary()
-
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(),
-        loss="binary_crossentropy",
-        metrics=["acc"],
     )
 
     batch_stats_callback = CollectBatchStats()
 
-    history = model.fit_generator(
-        train_generator, epochs=N_EPOCHS, validation_data=validation_generator
-    )
-    #                              callbacks = [batch_stats_callback])
+    tuner.search(train_generator, epochs=n_epochs, validation_data=validation_generator)
+    models = tuner.get_best_models(num_models=2)
+
     print("Finished training!")
-
-    probabilities = []
-    y_val_all = []
-    for i in tqdm(range(len(validation_generator)), desc="valset"):
-        X_val, y_val = next(validation_generator)
-        y_val_all += y_val.tolist()
-        probabilities += model.predict(X_val).tolist()
-
-    visualize.plot_confusion_matrix(
-        np.argmax(y_val_all, axis=-1),
-        np.argmax(probabilities, axis=-1),
-        classes=LABELS,
-        normalize=True,
-        experiment=experiment,
-    )
-
-    visualize.plot_confusion_matrix(
-        np.argmax(y_val_all, axis=-1),
-        np.argmax(probabilities, axis=-1),
-        classes=LABELS,
-        normalize=False,
-        experiment=experiment,
-    )
 
     probabilities = []
     test_IDs = []
