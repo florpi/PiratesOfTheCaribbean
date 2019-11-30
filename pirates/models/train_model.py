@@ -88,7 +88,8 @@ class CaribbeanModel(HyperModel):
     """
     """
 
-    def __init__(self, experiment):
+    def __init__(self, validation_generator):
+        self.validation_generator = validation_generator
         self.num_classes = len(LABELS)
 
     def build(self, hp):
@@ -139,10 +140,11 @@ class CaribbeanModel(HyperModel):
         with experiment.train():
             super(self).run_trial(trial, *fit_args, **fit_kwargs)
         # Run validation
+        val_generator = self.validation_generator
         with experiment.test():
             probabilities = []
             y_val_all = []
-            for X_val, y_val in tqdm(len(validation_generator), desc="valset"):
+            for X_val, y_val in tqdm(val_generator, desc="valset"):
                 y_val_all += y_val.tolist()
                 probs = np.mean([model.predict(X_val) for model in models])
                 probabilities += probs.tolist()
@@ -174,7 +176,7 @@ def transfer_train(
 ):
 
     tuner = RandomSearch(
-        CaribbeanModel,
+        CaribbeanModel(validation_generator=validation_generator),
         objective="val_accuracy",
         max_trials=5,
         executions_per_trial=3,
