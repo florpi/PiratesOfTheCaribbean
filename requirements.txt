@@ -16,8 +16,12 @@ rasterio>=1.1.0
 shapely>=1.6.4
 opencv-python>=4.1.1
 keras
+<<<<<<< HEAD
 keras-tuner>=1.0.0
 tensorflow>=1.14.0
+=======
+tensorflow>=2.0.0
+>>>>>>> d8df3cd6766911d3b92be265b441c475743e8d29
 tensorflow_hub
 comet_ml
 tenacity>=6.0.0

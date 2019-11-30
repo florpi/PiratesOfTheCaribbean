@@ -15,6 +15,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 import keras
 import tensorflow_hub as hub
+from sklearn.utils import class_weight
 from tqdm.autonotebook import tqdm
 from kerastuner import CaribbeanModel
 from kerastuner.tuners import RandomSearch
@@ -169,7 +170,7 @@ def transfer_train(
     test_generator,
     train_all=False,
     n_epochs=10,
-    directory="my_dir",
+    directory="/content/drive/My Drive/pirates/",
 ):
 
     tuner = RandomSearch(
@@ -185,6 +186,8 @@ def transfer_train(
 
     tuner.search(train_generator, epochs=n_epochs, validation_data=validation_generator)
     models = tuner.get_best_models(num_models=2)
+    for idx, model in enumerate(models):
+        model.save(os.path.join(directory, "pirates_cnn_{idx}.h5"))
 
     print("Finished training!")
 
@@ -210,7 +213,7 @@ def transfer_train(
         ],
     )
     # Save test csv file for submission
-    submission.to_csv("submission.csv")
+    submission.to_csv(directory + "submission.csv")
 
 
 if __name__ == "__main__":
