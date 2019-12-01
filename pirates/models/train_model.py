@@ -106,9 +106,7 @@ class CaribbeanModel(HyperModel):
         feature_extractor_url = (
             "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
         )
-        feature_extractor_layer = hub.KerasLayer(
-            feature_extractor_url, trainable=True, input_shape=self.input_shape
-        )
+        feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True)
 
         # Freeze feature extrcator, train only new classifier layer
         feature_extractor_layer.trainable = hp.Choice(
