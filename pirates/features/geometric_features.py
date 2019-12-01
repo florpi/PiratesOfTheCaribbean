@@ -47,6 +47,7 @@ def compute_all_neighbours(gpd_df, radius):
     return gpd_df
 
 def compute_geometric_features(geojsons):
+    dfs = []
     for geojson in geojsons:
         df = gpd.read_file(geojson)
         df["subset"] = "train" if "train" in geojson else "test"

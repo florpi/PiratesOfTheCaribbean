@@ -21,9 +21,9 @@ keras-tuner>=1.0.0
 tensorflow_hub
 comet_ml
 tenacity>=6.0.0
-tqdm==4.33.0
 libpysal
 rtree==0.8.3
- Shapely==1.6.4.post2 
+Shapely==1.6.4.post2 
 descartes==1.1.0
 xarray
+tqdm==4.33.0
