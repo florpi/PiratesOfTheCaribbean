@@ -1,5 +1,7 @@
+from comet_ml import Experiment
 import lightgbm as lgb
 
+from pirates.visualization import visualize
 
 hyperparameters = {
                 'is_unbalance': True,
