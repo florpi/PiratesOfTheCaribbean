@@ -33,14 +33,16 @@ def neighbours_within_radius(gpd_df, cpt, radius):
 
 def compute_all_neighbours(gpd_df, radius):
     idx_neighbors = []
+    num_neighbors = []
     for i, row in tqdm(gpd_df.iterrows(), total=gpd_df.shape[0]):
         cpt = gpd_df.loc[i,'geometry'].centroid
         neighbours = neighbours_within_radius(gpd_df,cpt,radius)
         idx_neighbors.append(neighbours)
+        num_neighbors.append(len(neighbours))
 
 
     gpd_df[f"idx_neighbors_{radius}"] = idx_neighbors
-    gpd_df[f"num_neighbors_{radius}"]  = len(idx_neighbors)
+    gpd_df[f"num_neighbors_{radius}"]  = num_neighbors
     #gpd_df[f"mean_area_{radius}"] = gpd_df.loc[idx_neighbors,'geometry'].area.mean() 
     return gpd_df
 
@@ -57,7 +59,8 @@ def compute_geometric_features(geojsons):
     df["zone"] = df["path"].apply(lambda x: x.split("/")[6])
     df["area"] = df["geometry"].area
 
-    radius = [20,50,100]
+    #radius = [20,50,100]
+    radius = [20]
     for r in radius:
         df = compute_all_neighbours(df, r)
 
