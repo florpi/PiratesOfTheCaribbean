@@ -17,7 +17,7 @@ import keras
 import tensorflow_hub as hub
 from sklearn.utils import class_weight
 from tqdm.autonotebook import tqdm
-from kerastuner import CaribbeanModel
+from kerastuner import HyperModel
 from kerastuner.tuners import RandomSearch
 
 from pirates.visualization import visualize
@@ -88,8 +88,9 @@ class CaribbeanModel(HyperModel):
     """
     """
 
-    def __init__(self, validation_generator):
+    def __init__(self, input_shape, validation_generator):
         self.validation_generator = validation_generator
+        self.input_shape = input_shape
         self.num_classes = len(LABELS)
 
     def build(self, hp):
@@ -104,7 +105,7 @@ class CaribbeanModel(HyperModel):
         feature_extractor_url = (
             "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
         )
-        feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True)
+        feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True, input_shape=self.input_shape)
 
         # Freeze feature extrcator, train only new classifier layer
         feature_extractor_layer.trainable = hp.Choice(
@@ -120,10 +121,8 @@ class CaribbeanModel(HyperModel):
         # Print summary
         model.summary()
         # Loss layer
-        loss = hp.Choice(
-            "loss",
-            values=["binary_crossentropy", categorical_focal_loss(alpha=0.25, gamma=2)],
-        )
+        loss = categorical_focal_loss(alpha=hp.Float("alpha", 0.1, 1.0, step=0.1),
+                                      gamma=hp.Float("gamma", 1.0, 2.5, step=0.15))
         model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
         return model
 
@@ -176,7 +175,7 @@ def transfer_train(
 ):
 
     tuner = RandomSearch(
-        CaribbeanModel(validation_generator=validation_generator),
+        CaribbeanModel(input_shape=(224, 224, 3), validation_generator=validation_generator),
         objective="val_accuracy",
         max_trials=5,
         executions_per_trial=3,
