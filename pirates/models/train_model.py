@@ -115,7 +115,7 @@ class CaribbeanModel(HyperModel):
         # Define keras model
         inputs = layers.Input(shape=self.input_shape)
         features = feature_extractor_layer(inputs)
-        outputs = layers.Dense(self.num_classes, activation="softmax")
+        outputs = layers.Dense(self.num_classes, activation="softmax")(features)
         model = Model(inputs=inputs, outputs=outputs)
         # Print summary
         model.summary()
