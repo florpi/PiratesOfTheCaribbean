@@ -122,7 +122,7 @@ class CaribbeanModel(HyperModel):
         model.summary()
         # Loss layer
         loss = categorical_focal_loss(alpha=hp.Float("alpha", 0.1, 1.0, step=0.1),
-                                      gamma=hp.Float("alpha", 1.0, 2.5, step=0.15))
+                                      gamma=hp.Float("gamma", 1.0, 2.5, step=0.15))
         model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
         return model
 
