@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import layers
-import keras
-from keras import backend as K
+from tensorflow.keras.models import Model
+from tensorflow.keras import backend as K
 import tensorflow_hub as hub
 from sklearn.utils import class_weight
 from tqdm.autonotebook import tqdm
@@ -106,24 +106,24 @@ class CaribbeanModel(HyperModel):
         feature_extractor_url = (
             "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
         )
-        feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True, input_shape=self.input_shape)
+        feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True)
 
         # Freeze feature extrcator, train only new classifier layer
         feature_extractor_layer.trainable = hp.Choice(
             "train_feature_extractor", values=[True, False]
         )
         # Define keras model
-        model = tf.keras.Sequential(
-            [
-                feature_extractor_layer,
-                layers.Dense(self.num_classes, activation="softmax"),
-            ]
-        )
+        inputs = layers.Input(shape=self.input_shape)
+        features = feature_extractor_layer(inputs)
+        outputs = layers.Dense(self.num_classes, activation="softmax")(features)
+        model = Model(inputs=inputs, outputs=outputs)
         # Print summary
         model.summary()
         # Loss layer
-        loss = categorical_focal_loss(alpha=hp.Float("alpha", 0.1, 1.0, step=0.1),
-                                      gamma=hp.Float("gamma", 1.0, 2.5, step=0.15))
+        loss = categorical_focal_loss(
+            alpha=hp.Float("alpha", 0.5, 0.1, step=-0.05),
+            gamma=hp.Float("gamma", 1.7, 2.5, step=0.1),
+        )
         model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
         return model
 
@@ -142,11 +142,12 @@ class CaribbeanModel(HyperModel):
         # Run validation
         val_generator = self.validation_generator
         with experiment.test():
+            model = self.load_model(trial)
             probabilities = []
             y_val_all = []
             for X_val, y_val in tqdm(val_generator, desc="valset"):
                 y_val_all += y_val.tolist()
-                probs = np.mean([model.predict(X_val) for model in models])
+                probs = model.predict(X_val)
                 probabilities += probs.tolist()
 
             visualize.plot_confusion_matrix(
@@ -176,7 +177,9 @@ def transfer_train(
 ):
 
     tuner = RandomSearch(
-        CaribbeanModel(input_shape=(224, 224, 3), validation_generator=validation_generator),
+        CaribbeanModel(
+            input_shape=(224, 224, 3), validation_generator=validation_generator
+        ),
         objective="val_accuracy",
         max_trials=5,
         executions_per_trial=3,
@@ -225,8 +228,12 @@ if __name__ == "__main__":
     IMAGE_SHAPE = (224, 224, 3)
 
     X_train = np.random.random(size=(100,) + IMAGE_SHAPE)
-    y_train = keras.utils.to_categorical(np.random.randint(2, size=100, dtype=np.int32))
+    y_train = tf.keras.utils.to_categorical(
+        np.random.randint(2, size=100, dtype=np.int32)
+    )
     X_test = np.random.random(size=(10,) + IMAGE_SHAPE)
-    y_test = keras.utils.to_categorical(np.random.randint(2, size=10, dtype=np.int32))
+    y_test = tf.keras.utils.to_categorical(
+        np.random.randint(2, size=10, dtype=np.int32)
+    )
 
     transfer_train(X_train, y_train, X_test, y_test)
