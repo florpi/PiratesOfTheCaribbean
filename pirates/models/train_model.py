@@ -14,7 +14,7 @@ import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
-from keras import backend as K
+from tensorflow.keras import backend as K
 import tensorflow_hub as hub
 from sklearn.utils import class_weight
 from tqdm.autonotebook import tqdm
@@ -74,10 +74,10 @@ def categorical_focal_loss(gamma=2.0, alpha=0.25):
         y_pred = K.clip(y_pred, epsilon, 1.0 - epsilon)
 
         # Calculate Cross Entropy
-        cross_entropy = -y_true * K.math.log(y_pred)
+        cross_entropy = -y_true * K.log(y_pred)
 
         # Calculate Focal Loss
-        loss = alpha * K.math.pow(1 - y_pred, gamma) * cross_entropy
+        loss = alpha * K.pow(1 - y_pred, gamma) * cross_entropy
 
         # Sum the losses in mini_batch
         return K.sum(loss, axis=1)
