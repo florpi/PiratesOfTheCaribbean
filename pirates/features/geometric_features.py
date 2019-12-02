@@ -57,13 +57,13 @@ def compute_geometric_features(geojsons):
     df["place"] = df["path"].apply(lambda x: x.split("/")[5])
     df["zone"] = df["path"].apply(lambda x: x.split("/")[6])
     df["area"] = df["geometry"].area
-
-    #radius = [20,50,100]
+    return df
+    '''
     radius = [20]
     for r in radius:
         df = compute_all_neighbours(df, r)
-
     return df
+    '''
 
 def train_val_split(gdf):
     train_pkl = "drive/My Drive/pirates/data/processed/train/*.pkl"
