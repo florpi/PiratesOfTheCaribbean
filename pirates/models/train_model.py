@@ -134,37 +134,35 @@ class CaribbeanModel(HyperModel):
             api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
             project_name="piratesofthecaribbean",
             workspace="florpi",
-            auto_param_logging=False,
+            auto_param_logging=True,
         )
         experiment.log_parameters(trial.hyperparameters)
-        with experiment.train():
-            super(self).run_trial(trial, *fit_args, **fit_kwargs)
+        super(self).run_trial(trial, *fit_args, **fit_kwargs)
         # Run validation
         val_generator = self.validation_generator
-        with experiment.test():
-            model = self.load_model(trial)
-            probabilities = []
-            y_val_all = []
-            for X_val, y_val in tqdm(val_generator, desc="valset"):
-                y_val_all += y_val.tolist()
-                probs = model.predict(X_val)
-                probabilities += probs.tolist()
+        model = self.load_model(trial)
+        probabilities = []
+        y_val_all = []
+        for X_val, y_val in tqdm(val_generator, desc="valset"):
+            y_val_all += y_val.tolist()
+            probs = model.predict(X_val)
+            probabilities += probs.tolist()
 
-            visualize.plot_confusion_matrix(
-                np.argmax(y_val_all, axis=-1),
-                np.argmax(probabilities, axis=-1),
-                classes=LABELS,
-                normalize=True,
-                experiment=experiment,
-            )
+        visualize.plot_confusion_matrix(
+            np.argmax(y_val_all, axis=-1),
+            np.argmax(probabilities, axis=-1),
+            classes=LABELS,
+            normalize=True,
+            experiment=experiment,
+        )
 
-            visualize.plot_confusion_matrix(
-                np.argmax(y_val_all, axis=-1),
-                np.argmax(probabilities, axis=-1),
-                classes=LABELS,
-                normalize=False,
-                experiment=experiment,
-            )
+        visualize.plot_confusion_matrix(
+            np.argmax(y_val_all, axis=-1),
+            np.argmax(probabilities, axis=-1),
+            classes=LABELS,
+            normalize=False,
+            experiment=experiment,
+        )
 
 
 def transfer_train(
