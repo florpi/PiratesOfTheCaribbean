@@ -173,7 +173,7 @@ def transfer_train(
     test_generator,
     train_all=False,
     n_epochs=10,
-    directory="/content/drive/My Drive/pirates/",
+    directory="/content/drive/My Drive/pirates/cnn_model/",
 ):
 
     tuner = RandomSearch(
