@@ -42,7 +42,7 @@ def compute_all_neighbours(gpd_df, radius):
 
     gpd_df[f"idx_neighbors_{radius}"] = idx_neighbors
     gpd_df[f"num_neighbors_{radius}"]  = num_neighbors
-    #gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x: gdp_df.loc[x, "geometry"].area.mean())
+    gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x: gpd_df.loc[x, "geometry"].area.mean())
     return gpd_df
 
 def compute_geometric_features(geojsons):
@@ -57,12 +57,9 @@ def compute_geometric_features(geojsons):
     df["place"] = df["path"].apply(lambda x: x.split("/")[5])
     df["zone"] = df["path"].apply(lambda x: x.split("/")[6])
     df["area"] = df["geometry"].area
-
-    #radius = [20,50,100]
-    radius = [20]
+    radius = [20, 50,100]
     for r in radius:
         df = compute_all_neighbours(df, r)
-
     return df
 
 def train_val_split(gdf):
