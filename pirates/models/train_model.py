@@ -109,9 +109,9 @@ class CaribbeanModel(HyperModel):
         feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True)
 
         # Freeze feature extrcator, train only new classifier layer
-        feature_extractor_layer.trainable = hp.Choice(
-            "train_feature_extractor", values=[True, False]
-        )
+        # feature_extractor_layer.trainable = hp.Choice(
+        #     "train_feature_extractor", values=[True, False]
+        # )
         # Define keras model
         inputs = layers.Input(shape=self.input_shape)
         features = feature_extractor_layer(inputs)
@@ -134,35 +134,37 @@ class CaribbeanModel(HyperModel):
             api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
             project_name="piratesofthecaribbean",
             workspace="florpi",
-            auto_param_logging=True,
+            auto_param_logging=False,
         )
         experiment.log_parameters(trial.hyperparameters)
-        super(self).run_trial(trial, *fit_args, **fit_kwargs)
+        with experiment.train():
+            super(self).run_trial(trial, *fit_args, **fit_kwargs)
         # Run validation
         val_generator = self.validation_generator
-        model = self.load_model(trial)
-        probabilities = []
-        y_val_all = []
-        for X_val, y_val in tqdm(val_generator, desc="valset"):
-            y_val_all += y_val.tolist()
-            probs = model.predict(X_val)
-            probabilities += probs.tolist()
+        with experiment.test():
+            model = self.load_model(trial)
+            probabilities = []
+            y_val_all = []
+            for X_val, y_val in tqdm(val_generator, desc="valset"):
+                y_val_all += y_val.tolist()
+                probs = model.predict(X_val)
+                probabilities += probs.tolist()
 
-        visualize.plot_confusion_matrix(
-            np.argmax(y_val_all, axis=-1),
-            np.argmax(probabilities, axis=-1),
-            classes=LABELS,
-            normalize=True,
-            experiment=experiment,
-        )
+            visualize.plot_confusion_matrix(
+                np.argmax(y_val_all, axis=-1),
+                np.argmax(probabilities, axis=-1),
+                classes=LABELS,
+                normalize=True,
+                experiment=experiment,
+            )
 
-        visualize.plot_confusion_matrix(
-            np.argmax(y_val_all, axis=-1),
-            np.argmax(probabilities, axis=-1),
-            classes=LABELS,
-            normalize=False,
-            experiment=experiment,
-        )
+            visualize.plot_confusion_matrix(
+                np.argmax(y_val_all, axis=-1),
+                np.argmax(probabilities, axis=-1),
+                classes=LABELS,
+                normalize=False,
+                experiment=experiment,
+            )
 
 
 def transfer_train(
@@ -178,7 +180,7 @@ def transfer_train(
         CaribbeanModel(
             input_shape=(224, 224, 3), validation_generator=validation_generator
         ),
-        objective="val_accuracy",
+        objective="val_acc",
         max_trials=5,
         executions_per_trial=3,
         directory=directory,
