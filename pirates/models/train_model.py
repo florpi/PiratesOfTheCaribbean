@@ -85,33 +85,22 @@ def categorical_focal_loss(gamma=2.0, alpha=0.25):
     return categorical_focal_loss_fixed
 
 
-class CaribbeanModel(HyperModel):
+class CaribbeanModel:
     """
     """
 
-    def __init__(self, input_shape, validation_generator):
-        self.validation_generator = validation_generator
+    def __init__(self, input_shape):
         self.input_shape = input_shape
         self.num_classes = len(LABELS)
 
-    def build(self, hp):
-        # Cannot tune feature extractor since each one requires a precise input_shape
-        # feature_extractor_url = hp.Choice(
-        #     "feature_extractor",
-        #     [
-        #         "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4",
-        #         "https://tfhub.dev/google/imagenet/nasnet_large/feature_vector/4",
-        #     ],
-        # )
+    def build(self):
+        """
+        """
         feature_extractor_url = (
             "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
         )
         feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True)
 
-        # Freeze feature extrcator, train only new classifier layer
-        # feature_extractor_layer.trainable = hp.Choice(
-        #     "train_feature_extractor", values=[True, False]
-        # )
         # Define keras model
         inputs = layers.Input(shape=self.input_shape)
         features = feature_extractor_layer(inputs)
@@ -120,32 +109,26 @@ class CaribbeanModel(HyperModel):
         # Print summary
         model.summary()
         # Loss layer
-        loss = categorical_focal_loss(
-            alpha=hp.Float("alpha", 0.5, 0.1, step=-0.05),
-            gamma=hp.Float("gamma", 1.7, 2.5, step=0.1),
-        )
+        loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
         model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
         return model
 
-    def run_trial(self, trial, *fit_args, **fit_kwargs):
+    def train_and_evaluate(self, train_gen, val_gen, epochs):
         """
         """
         experiment = Experiment(
             api_key="VNQSdbR1pw33EkuHbUsGUSZWr",
             project_name="piratesofthecaribbean",
             workspace="florpi",
-            auto_param_logging=False,
         )
-        experiment.log_parameters(trial.hyperparameters)
+        model = self.build()
         with experiment.train():
-            super(self).run_trial(trial, *fit_args, **fit_kwargs)
+            model.fit_generator(train_gen, epochs=epochs, validation_data=train_gen)
         # Run validation
-        val_generator = self.validation_generator
         with experiment.test():
-            model = self.load_model(trial)
             probabilities = []
             y_val_all = []
-            for X_val, y_val in tqdm(val_generator, desc="valset"):
+            for X_val, y_val in tqdm(val_gen, desc="valset"):
                 y_val_all += y_val.tolist()
                 probs = model.predict(X_val)
                 probabilities += probs.tolist()
@@ -172,30 +155,17 @@ def transfer_train(
     validation_generator,
     test_generator,
     train_all=False,
-    n_epochs=10,
+    n_epochs=100,
     directory="/content/drive/My Drive/pirates/cnn_model/",
 ):
 
-    tuner = RandomSearch(
-        CaribbeanModel(
-            input_shape=(224, 224, 3), validation_generator=validation_generator
-        ),
-        objective="val_acc",
-        max_trials=5,
-        executions_per_trial=3,
-        directory=directory,
-        project_name="piratesofthecaribbean",
+    caribbean = CaribbeanModel(input_shape=(224, 224, 3))
+    model = caribbeancaribbean.train_and_evaluate(
+        train_generator, validation_generator, n_epochs
     )
-
     batch_stats_callback = CollectBatchStats()
-
-    tuner.search(train_generator, epochs=n_epochs, validation_data=validation_generator)
-    models = tuner.get_best_models(num_models=2)
-    for idx, model in enumerate(models):
-        model.save(os.path.join(directory, "pirates_cnn_{idx}.h5"))
-
+    model.save(os.path.join(directory, "pirates_cnn_{idx}.h5"))
     print("Finished training!")
-
     probabilities = []
     test_IDs = []
     for i in tqdm(range(len(test_generator)), desc="testset"):
@@ -218,7 +188,7 @@ def transfer_train(
         ],
     )
     # Save test csv file for submission
-    submission.to_csv(directory + "submission.csv")
+    submission.to_csv(directory + "submission.csv", index=False)
 
 
 if __name__ == "__main__":
