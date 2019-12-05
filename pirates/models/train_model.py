@@ -123,7 +123,7 @@ class CaribbeanModel:
         )
         model = self.build()
         with experiment.train():
-            model.fit_generator(train_gen, epochs=epochs, validation_data=train_gen)
+            model.fit_generator(train_gen, epochs=epochs, validation_data=val_gen)
         # Run validation
         with experiment.test():
             probabilities = []
