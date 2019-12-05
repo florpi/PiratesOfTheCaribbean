@@ -17,7 +17,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
 import tensorflow_hub as hub
 from sklearn.utils import class_weight
-from tqdm.autonotebook import tqdm
+from tqdm import tqdm_notebook as tqdm
 from kerastuner import HyperModel
 from kerastuner.tuners import RandomSearch
 
@@ -148,6 +148,7 @@ class CaribbeanModel:
                 normalize=False,
                 experiment=experiment,
             )
+        return model
 
 
 def transfer_train(
@@ -160,7 +161,7 @@ def transfer_train(
 ):
 
     caribbean = CaribbeanModel(input_shape=(224, 224, 3))
-    model = caribbeancaribbean.train_and_evaluate(
+    model = caribbean.train_and_evaluate(
         train_generator, validation_generator, n_epochs
     )
     batch_stats_callback = CollectBatchStats()
