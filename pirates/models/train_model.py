@@ -132,10 +132,16 @@ class CaribbeanModel:
         with experiment.test():
             probabilities = []
             y_val_all = []
-            for X_val, y_val in tqdm(val_gen, desc="valset"):
+            # reset generator
+            val_gen.reset()
+            for idx, (X_val, y_val) in tqdm(
+                enumerate(val_gen), desc="valset", total=val_gen._num_examples
+            ):
                 y_val_all += y_val.tolist()
                 probs = model.predict(X_val)
                 probabilities += probs.tolist()
+                if idx > val_gen._num_examples:
+                    break
 
             visualize.plot_confusion_matrix(
                 np.argmax(y_val_all, axis=-1),
@@ -172,10 +178,13 @@ def transfer_train(
     print("Finished training!")
     probabilities = []
     test_IDs = []
-    for i in tqdm(range(len(test_generator)), desc="testset"):
-        test_ID, X_test = next(test_generator)
+    for idx, (test_ID, X_test) in tqdm(
+        enumerate(test_generator), desc="testset", total=test_generator._num_examples
+    ):
         test_IDs.append(test_ID)
         probabilities.append(model.predict(X_test).tolist())
+        if idx > test_generator._num_examples:
+            break
 
     probabilities = np.reshape(np.asarray(probabilities), [-1, 5])
     test_IDs = np.reshape(np.asarray(test_IDs), [-1, 1])
