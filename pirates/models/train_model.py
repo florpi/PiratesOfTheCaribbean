@@ -161,6 +161,37 @@ class CaribbeanModel:
         return model
 
 
+def predict_generator(model, generator, outdir, set_name):
+    """
+    """
+    probabilities = []
+    generator_IDs = []
+    for idx, (generator_ID, X_generator) in tqdm(
+        enumerate(generator), desc=set_name, total=generator._num_examples
+    ):
+        generator_IDs.append(generator_ID)
+        probabilities.append(model.predict(X_generator).tolist())
+        if idx > generator._num_examples:
+            break
+
+    probabilities = np.reshape(np.asarray(probabilities), [-1, 5])
+    generator_IDs = np.reshape(np.asarray(generator_IDs), [-1, 1])
+    submission = np.concatenate([generator_IDs, probabilities], axis=1)
+    submission = pd.DataFrame(
+        submission,
+        columns=[
+            "id",
+            "concrete_cement",
+            "healthy_metal",
+            "incomplete",
+            "irregular_metal",
+            "other",
+        ],
+    )
+    # Save test csv file for submission
+    submission.to_csv(outdir + "submission_{set_name}.csv", index=False)
+
+
 def transfer_train(
     train_generator,
     validation_generator,
@@ -176,32 +207,8 @@ def transfer_train(
     )
     # batch_stats_callback = CollectBatchStats()
     print("Finished training!")
-    probabilities = []
-    test_IDs = []
-    for idx, (test_ID, X_test) in tqdm(
-        enumerate(test_generator), desc="testset", total=test_generator._num_examples
-    ):
-        test_IDs.append(test_ID)
-        probabilities.append(model.predict(X_test).tolist())
-        if idx > test_generator._num_examples:
-            break
-
-    probabilities = np.reshape(np.asarray(probabilities), [-1, 5])
-    test_IDs = np.reshape(np.asarray(test_IDs), [-1, 1])
-    submission = np.concatenate([test_IDs, probabilities], axis=1)
-    submission = pd.DataFrame(
-        submission,
-        columns=[
-            "id",
-            "concrete_cement",
-            "healthy_metal",
-            "incomplete",
-            "irregular_metal",
-            "other",
-        ],
-    )
-    # Save test csv file for submission
-    submission.to_csv(directory + "submission.csv", index=False)
+    predict_generator(model, test_generator, directory, "test")
+    return model
 
 
 if __name__ == "__main__":
