@@ -189,7 +189,7 @@ def predict_generator(model, generator, outdir, set_name):
         ],
     )
     # Save test csv file for submission
-    submission.to_csv(outdir + "submission_{set_name}.csv", index=False)
+    submission.to_csv(outdir + f"submission_{set_name}.csv", index=False)
 
 
 def transfer_train(
