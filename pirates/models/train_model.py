@@ -18,8 +18,6 @@ from tensorflow.keras import backend as K
 import tensorflow_hub as hub
 from sklearn.utils import class_weight
 from tqdm import tqdm_notebook as tqdm
-from kerastuner import HyperModel
-from kerastuner.tuners import RandomSearch
 
 from pirates.visualization import visualize
 
