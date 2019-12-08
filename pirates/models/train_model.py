@@ -105,12 +105,10 @@ class CaribbeanModel:
         feature_extractor_url = (
             "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
         )
-        feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True)
-
         # Define keras model
         images_uint8 = layers.Input(shape=self.input_shape)
-        images_float32 = ConvertImage(images_uint8)
-        features = feature_extractor_layer(images_float32)
+        images_float32 = ConvertImage()(images_uint8)
+        features = hub.KerasLayer(feature_extractor_url, trainable=True)(images_float32)
         outputs = layers.Dense(self.num_classes, activation="softmax")(features)
         model = Model(inputs=images_uint8, outputs=outputs)
         # Print summary
