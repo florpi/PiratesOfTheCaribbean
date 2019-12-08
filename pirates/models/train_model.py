@@ -85,13 +85,19 @@ def categorical_focal_loss(gamma=2.0, alpha=0.25):
     return categorical_focal_loss_fixed
 
 
+class ConvertImage(layers.Layer):
+    def call(self, inputs):
+        return tf.image.convert_image_dtype(inputs, dtype=tf.float32, saturate=True)
+
+
 class CaribbeanModel:
     """
     """
 
-    def __init__(self, input_shape):
+    def __init__(self, input_shape, directory):
         self.input_shape = input_shape
         self.num_classes = len(LABELS)
+        self.directory = directory
 
     def build(self):
         """
@@ -102,10 +108,11 @@ class CaribbeanModel:
         feature_extractor_layer = hub.KerasLayer(feature_extractor_url, trainable=True)
 
         # Define keras model
-        inputs = layers.Input(shape=self.input_shape)
-        features = feature_extractor_layer(inputs)
+        images_uint8 = layers.Input(shape=self.input_shape)
+        images_float32 = ConvertImage(images_uint8)
+        features = feature_extractor_layer(images_float32)
         outputs = layers.Dense(self.num_classes, activation="softmax")(features)
-        model = Model(inputs=inputs, outputs=outputs)
+        model = Model(inputs=images_uint8, outputs=outputs)
         # Print summary
         model.summary()
         # Loss layer
@@ -124,6 +131,7 @@ class CaribbeanModel:
         model = self.build()
         with experiment.train():
             model.fit_generator(train_gen, epochs=epochs, validation_data=val_gen)
+        model.save(os.path.join(self.directory, "pirates_cnn_{idx}.h5"))
         # Run validation
         with experiment.test():
             probabilities = []
@@ -156,16 +164,15 @@ def transfer_train(
     validation_generator,
     test_generator,
     train_all=False,
-    n_epochs=100,
+    n_epochs=10,
     directory="/content/drive/My Drive/pirates/cnn_model/",
 ):
 
-    caribbean = CaribbeanModel(input_shape=(224, 224, 3))
+    caribbean = CaribbeanModel(input_shape=(224, 224, 3), directory=directory)
     model = caribbean.train_and_evaluate(
         train_generator, validation_generator, n_epochs
     )
-    batch_stats_callback = CollectBatchStats()
-    model.save(os.path.join(directory, "pirates_cnn_{idx}.h5"))
+    # batch_stats_callback = CollectBatchStats()
     print("Finished training!")
     probabilities = []
     test_IDs = []
