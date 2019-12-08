@@ -127,7 +127,7 @@ class CaribbeanModel:
         model = self.build()
         with experiment.train():
             model.fit_generator(train_gen, epochs=epochs, validation_data=val_gen)
-        model.save(os.path.join(self.directory, "pirates_cnn_{idx}.h5"))
+        model.save(os.path.join(self.directory, "pirates_cnn.h5"))
         # Run validation
         with experiment.test():
             probabilities = []
