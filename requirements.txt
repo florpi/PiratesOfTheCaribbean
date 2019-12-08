@@ -27,3 +27,4 @@ Shapely==1.6.4.post2
 descartes==1.1.0
 xarray
 tqdm==4.33.0
+colorama<0.4.2,>=0.2.5
