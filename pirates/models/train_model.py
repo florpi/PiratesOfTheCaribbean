@@ -110,7 +110,7 @@ class CaribbeanModel:
         features = hub.KerasLayer(
             feature_extractor_url,
             trainable=True,
-            arguments={"batch_norm_momentum": 0.95},
+            arguments={"batch_norm_momentum": 0.98},
         )(images_float32)
         outputs = layers.Dense(self.num_classes, activation="softmax")(features)
         model = Model(inputs=images_uint8, outputs=outputs)
@@ -119,7 +119,7 @@ class CaribbeanModel:
         # Loss layer
         loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.002),
             loss=loss,
             metrics=["acc"],
         )
