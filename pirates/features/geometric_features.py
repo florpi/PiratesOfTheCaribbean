@@ -23,6 +23,7 @@ def neighbours_within_radius(gpd_df, cpt, radius):
   for n in sindex.intersection(bbox):
     dist = cpt.distance(gpd_df['geometry'][n])
     if dist<radius:
+      n = gpd_df.loc[n,'id']
       good.append((dist,n))
   #Sort list in ascending order by `dist`, then `n`
   good.sort() 
@@ -30,7 +31,7 @@ def neighbours_within_radius(gpd_df, cpt, radius):
   return [x[1] for x in good]
 
 
-def compute_all_neighbours(gpd_df, radius):
+def compute_all_neighbours(gpd_df, radius, probabilities):
     idx_neighbors = []
     num_neighbors = []
     for i, row in tqdm(gpd_df.iterrows(), total=gpd_df.shape[0]):
@@ -42,10 +43,12 @@ def compute_all_neighbours(gpd_df, radius):
 
     gpd_df[f"idx_neighbors_{radius}"] = idx_neighbors
     gpd_df[f"num_neighbors_{radius}"]  = num_neighbors
-    gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x: gpd_df.loc[x, "geometry"].area.mean())
+    gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x:gpd_df.loc[gdp_df.id == x, "geometry"].area.mean())
+    for metal_type in probabilities.columns[1:]:
+        gpd_df[f"{metal_type}_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x: probabilities.loc[probabilities.id==x, metal_type].mean())
     return gpd_df
 
-def compute_geometric_features(geojsons):
+def compute_geometric_features(geojsons, probabilities):
     dfs = []
     for geojson in geojsons:
         df = gpd.read_file(geojson)
