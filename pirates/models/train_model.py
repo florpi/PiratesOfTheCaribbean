@@ -101,7 +101,8 @@ class CaribbeanModel:
         """
         """
         feature_extractor_url = (
-            "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
+            # "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
+            "https://tfhub.dev/google/imagenet/nasnet_large/feature_vector/4"
         )
         # Define keras model
         images_uint8 = layers.Input(shape=self.input_shape)
@@ -201,7 +202,7 @@ def transfer_train(
     directory="/content/drive/My Drive/pirates/cnn_model/",
 ):
 
-    caribbean = CaribbeanModel(input_shape=(224, 224, 3), directory=directory)
+    caribbean = CaribbeanModel(input_shape=(331, 331, 3), directory=directory)
     model = caribbean.train_and_evaluate(
         train_generator, validation_generator, n_epochs
     )
@@ -215,7 +216,7 @@ if __name__ == "__main__":
     RATIO = 1.33
     WIDTH = 300
     IMAGE_SHAPE = (int(WIDTH / RATIO), WIDTH, 3)
-    IMAGE_SHAPE = (224, 224, 3)
+    IMAGE_SHAPE = (331, 331, 3)
 
     X_train = np.random.random(size=(100,) + IMAGE_SHAPE)
     y_train = tf.keras.utils.to_categorical(
