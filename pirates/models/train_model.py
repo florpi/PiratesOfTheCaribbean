@@ -107,14 +107,22 @@ class CaribbeanModel:
         # Define keras model
         images_uint8 = layers.Input(shape=self.input_shape)
         images_float32 = ConvertImage()(images_uint8)
-        features = hub.KerasLayer(feature_extractor_url, trainable=True)(images_float32)
+        features = hub.KerasLayer(
+            feature_extractor_url,
+            trainable=True,
+            arguments={"batch_norm_momentum": 0.95},
+        )(images_float32)
         outputs = layers.Dense(self.num_classes, activation="softmax")(features)
         model = Model(inputs=images_uint8, outputs=outputs)
         # Print summary
         model.summary()
         # Loss layer
         loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
-        model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+            loss=loss,
+            metrics=["acc"],
+        )
         return model
 
     def train_and_evaluate(self, train_gen, val_gen, epochs):
