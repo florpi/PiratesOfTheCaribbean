@@ -102,16 +102,13 @@ class CaribbeanModel:
         """
         feature_extractor_url = (
             # "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
-            "https://tfhub.dev/google/imagenet/nasnet_large/feature_vector/4"
+            # "https://tfhub.dev/google/imagenet/nasnet_large/feature_vector/4"
+            "https://tfhub.dev/google/remote_sensing/eurosat-resnet50/1"
         )
         # Define keras model
         images_uint8 = layers.Input(shape=self.input_shape)
         images_float32 = ConvertImage()(images_uint8)
-        features = hub.KerasLayer(
-            feature_extractor_url,
-            trainable=True,
-            arguments={"batch_norm_momentum": 0.98},
-        )(images_float32)
+        features = hub.KerasLayer(feature_extractor_url, trainable=True)(images_float32)
         outputs = layers.Dense(self.num_classes, activation="softmax")(features)
         model = Model(inputs=images_uint8, outputs=outputs)
         # Print summary
@@ -119,7 +116,7 @@ class CaribbeanModel:
         # Loss layer
         loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.002),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
             loss=loss,
             metrics=["acc"],
         )
@@ -210,7 +207,7 @@ def transfer_train(
     directory="/content/drive/My Drive/pirates/cnn_model/",
 ):
 
-    caribbean = CaribbeanModel(input_shape=(331, 331, 3), directory=directory)
+    caribbean = CaribbeanModel(input_shape=(224, 224, 3), directory=directory)
     model = caribbean.train_and_evaluate(
         train_generator, validation_generator, n_epochs
     )
@@ -224,7 +221,7 @@ if __name__ == "__main__":
     RATIO = 1.33
     WIDTH = 300
     IMAGE_SHAPE = (int(WIDTH / RATIO), WIDTH, 3)
-    IMAGE_SHAPE = (331, 331, 3)
+    IMAGE_SHAPE = (224, 224, 3)
 
     X_train = np.random.random(size=(100,) + IMAGE_SHAPE)
     y_train = tf.keras.utils.to_categorical(
