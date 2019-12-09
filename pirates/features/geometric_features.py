@@ -62,7 +62,7 @@ def compute_geometric_features(geojsons, probabilities):
     df["area"] = df["geometry"].area
     radius = [20, 50,100,200]
     for r in radius:
-        df = compute_all_neighbours(df, r)
+        df = compute_all_neighbours(df, r, probabilities)
     return df
 
 def train_val_split(gdf):
