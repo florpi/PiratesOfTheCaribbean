@@ -103,7 +103,8 @@ class CaribbeanModel:
         feature_extractor_url = (
             # "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
             # "https://tfhub.dev/google/imagenet/nasnet_large/feature_vector/4"
-            "https://tfhub.dev/google/remote_sensing/eurosat-resnet50/1"
+            # "https://tfhub.dev/google/remote_sensing/eurosat-resnet50/1"
+            "https://tfhub.dev/google/remote_sensing/bigearthnet-resnet50/1"
         )
         # Define keras model
         images_uint8 = layers.Input(shape=self.input_shape)
@@ -115,11 +116,7 @@ class CaribbeanModel:
         model.summary()
         # Loss layer
         loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-            loss=loss,
-            metrics=["acc"],
-        )
+        model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
         return model
 
     def train_and_evaluate(self, train_gen, val_gen, epochs):
