@@ -43,7 +43,7 @@ def compute_all_neighbours(gpd_df, radius, probabilities):
 
     gpd_df[f"idx_neighbors_{radius}"] = idx_neighbors
     gpd_df[f"num_neighbors_{radius}"]  = num_neighbors
-    gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x:gpd_df.loc[gdp_df.id == x, "geometry"].area.mean())
+    gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x:gpd_df.loc[gpd_df.id == x, "geometry"].area.mean())
     for metal_type in probabilities.columns[1:]:
         gpd_df[f"{metal_type}_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x: probabilities.loc[probabilities.id==x, metal_type].mean())
     return gpd_df
