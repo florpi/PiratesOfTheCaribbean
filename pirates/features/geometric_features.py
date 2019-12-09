@@ -39,13 +39,11 @@ def compute_all_neighbours(gpd_df, radius, probabilities):
         neighbours = neighbours_within_radius(gpd_df,cpt,radius)
         idx_neighbors.append(neighbours)
         num_neighbors.append(len(neighbours))
-
-
     gpd_df[f"idx_neighbors_{radius}"] = idx_neighbors
     gpd_df[f"num_neighbors_{radius}"]  = num_neighbors
-    gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x:gpd_df.loc[gpd_df.id == x, "geometry"].area.mean())
+    gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x:gpd_df.loc[gpd_df.id.isin(x), "geometry"].area.mean())
     for metal_type in probabilities.columns[1:]:
-        gpd_df[f"{metal_type}_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x: probabilities.loc[probabilities.id==x, metal_type].mean())
+        gpd_df[f"{metal_type}_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x: probabilities.loc[probabilities.id.isin(x), metal_type].mean())
     return gpd_df
 
 def compute_geometric_features(geojsons, probabilities):
