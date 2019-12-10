@@ -23,10 +23,10 @@ from pirates.visualization import visualize
 
 LABELS = ["concrete_cement", "healthy_metal", "incomplete", "irregular_metal", "other"]
 CLASS_WEIGHTS = {
-    0: 0.1389522133628739,
-    1: 0.0260981272695377,
-    2: 0.2881890846285318,
-    3: 0.03675438253548622,
+    0: 0.1389522133628739 + 0.3,
+    1: 0.0260981272695377 + 0.3,
+    2: 0.2881890846285318 + 0.15,
+    3: 0.0367543825354862 + 0.3,
     4: 1.0,
 }
 
@@ -117,7 +117,7 @@ class CaribbeanModel:
         # Print summary
         model.summary()
         # Loss layer
-        loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
+        # loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
         # model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
