@@ -22,6 +22,13 @@ from tqdm import tqdm_notebook as tqdm
 from pirates.visualization import visualize
 
 LABELS = ["concrete_cement", "healthy_metal", "incomplete", "irregular_metal", "other"]
+CLASS_WEIGHTS = {
+    0: 0.1389522133628739 + 0.3,
+    1: 0.0260981272695377 + 0.3,
+    2: 0.2881890846285318 + 0.15,
+    3: 0.0367543825354862 + 0.3,
+    4: 1.0,
+}
 
 
 class CollectBatchStats(tf.keras.callbacks.Callback):
@@ -92,31 +99,31 @@ class CaribbeanModel:
     """
     """
 
-    def __init__(self, input_shape, directory):
+    def __init__(self, input_shape, module_url, directory):
         self.input_shape = input_shape
+        self.module_url = module_url
         self.num_classes = len(LABELS)
         self.directory = directory
 
     def build(self):
         """
         """
-        feature_extractor_url = (
-            # "https://tfhub.dev/google/imagenet/nasnet_mobile/feature_vector/4"
-            # "https://tfhub.dev/google/imagenet/nasnet_large/feature_vector/4"
-            # "https://tfhub.dev/google/remote_sensing/eurosat-resnet50/1"
-            "https://tfhub.dev/google/remote_sensing/bigearthnet-resnet50/1"
-        )
         # Define keras model
         images_uint8 = layers.Input(shape=self.input_shape)
         images_float32 = ConvertImage()(images_uint8)
-        features = hub.KerasLayer(feature_extractor_url, trainable=True)(images_float32)
+        features = hub.KerasLayer(self.module_url, trainable=True)(images_float32)
         outputs = layers.Dense(self.num_classes, activation="softmax")(features)
         model = Model(inputs=images_uint8, outputs=outputs)
         # Print summary
         model.summary()
         # Loss layer
-        loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
-        model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
+        # loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
+        # model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(),
+            loss="categorical_crossentropy",
+            metrics=["acc"],
+        )
         return model
 
     def train_and_evaluate(self, train_gen, val_gen, epochs):
@@ -129,7 +136,12 @@ class CaribbeanModel:
         )
         model = self.build()
         with experiment.train():
-            model.fit_generator(train_gen, epochs=epochs, validation_data=val_gen)
+            model.fit(
+                train_gen,
+                epochs=epochs,
+                validation_data=val_gen,
+                class_weight=CLASS_WEIGHTS,
+            )
         model.save(os.path.join(self.directory, "pirates_cnn.h5"))
         # Run validation
         with experiment.test():
@@ -199,12 +211,15 @@ def transfer_train(
     train_generator,
     validation_generator,
     test_generator,
-    train_all=False,
+    module_url,
+    input_shape,
     n_epochs=10,
     directory="/content/drive/My Drive/pirates/cnn_model/",
 ):
 
-    caribbean = CaribbeanModel(input_shape=(224, 224, 3), directory=directory)
+    caribbean = CaribbeanModel(
+        input_shape=input_shape, module_url=module_url, directory=directory
+    )
     model = caribbean.train_and_evaluate(
         train_generator, validation_generator, n_epochs
     )
