@@ -61,6 +61,7 @@ def compute_geometric_features(geojsons, probabilities):
         df = gpd.read_file(geojson)
         df["subset"] = "train" if "train" in geojson else "test"
         df["path"] = geojson
+        df["zone"] = df["path"].apply(lambda x: x.split("/")[6])
         df = df.to_crs(zone_to_crs[df["zone"]])
         for r in radius:
             df = compute_all_neighbours(df, r, probabilities)
@@ -69,7 +70,6 @@ def compute_geometric_features(geojsons, probabilities):
 
     df = pd.concat(dfs, ignore_index=True)
     df["place"] = df["path"].apply(lambda x: x.split("/")[5])
-    df["zone"] = df["path"].apply(lambda x: x.split("/")[6])
     return df
 
 def train_val_split(gdf):
