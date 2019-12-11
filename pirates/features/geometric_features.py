@@ -48,19 +48,27 @@ def compute_all_neighbours(gpd_df, radius, probabilities):
 
 def compute_geometric_features(geojsons, probabilities):
     dfs = []
+    radius = [20, 50,100,200]
+    zone_to_crs = {'gros_islet': '+init=epsg:32620',
+              'castries': '+init=epsg:32620',
+              'dennery': '+init=epsg:32620',
+              'mixco_3': '+init=epsg:32616',
+              'mixco_1_and_ebenezer': '+init=epsg:32616',
+              'borde_rural': '+init=epsg:32618',
+              'borde_soacha': '+init=epsg:32618'}
     for geojson in geojsons:
         df = gpd.read_file(geojson)
         df["subset"] = "train" if "train" in geojson else "test"
         df["path"] = geojson
-        df = df.to_crs({'init': 'epsg:32618'})
+        df = df.to_crs(zone_to_crs[zone])
+        for r in radius:
+            df = compute_all_neighbours(df, r, probabilities)
+        df["area"] = df["geometry"].area
         dfs.append(df)
+
     df = pd.concat(dfs, ignore_index=True)
     df["place"] = df["path"].apply(lambda x: x.split("/")[5])
     df["zone"] = df["path"].apply(lambda x: x.split("/")[6])
-    df["area"] = df["geometry"].area
-    radius = [20, 50,100,200]
-    for r in radius:
-        df = compute_all_neighbours(df, r, probabilities)
     return df
 
 def train_val_split(gdf):
