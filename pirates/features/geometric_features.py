@@ -56,11 +56,12 @@ def compute_geometric_features(geojsons, probabilities):
               'mixco_1_and_ebenezer': '+init=epsg:32616',
               'borde_rural': '+init=epsg:32618',
               'borde_soacha': '+init=epsg:32618'}
+
     for geojson in geojsons:
         df = gpd.read_file(geojson)
         df["subset"] = "train" if "train" in geojson else "test"
         df["path"] = geojson
-        df = df.to_crs(zone_to_crs[zone])
+        df = df.to_crs(zone_to_crs[df["zone"])
         for r in radius:
             df = compute_all_neighbours(df, r, probabilities)
         df["area"] = df["geometry"].area
