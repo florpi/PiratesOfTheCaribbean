@@ -41,7 +41,7 @@ def compute_all_neighbours(gpd_df, radius, probabilities):
         num_neighbors.append(len(neighbours))
     gpd_df[f"idx_neighbors_{radius}"] = idx_neighbors
     gpd_df[f"num_neighbors_{radius}"]  = num_neighbors
-    gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x:gpd_df.loc[gpd_df.id.isin(x), "geometry"].area.mean())
+    gpd_df[f"mean_area_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x:gpd_df.loc[gpd_df.id.isin(x), "geometry"].area.mean()).copy()
     #for metal_type in probabilities.columns[1:]:
     #    gpd_df[f"{metal_type}_{radius}"] = gpd_df[f"idx_neighbors_{radius}"].apply(lambda x: probabilities.loc[probabilities.id.isin(x), metal_type].mean())
     return gpd_df
@@ -65,7 +65,7 @@ def compute_geometric_features(geojsons, probabilities):
         df = df.to_crs(zone_to_crs[df.at[0,"zone"]])
         for r in radius:
             df = compute_all_neighbours(df, r, probabilities)
-        df["area"] = df["geometry"].area
+        df["area"] = df["geometry"].area.copy()
         dfs.append(df)
 
     df = pd.concat(dfs, ignore_index=True)
