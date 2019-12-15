@@ -29,6 +29,26 @@ LABELMAP = {
     "other": 4,
 }
 
+def smooth_labels(y, smooth_factor):
+    '''Convert a matrix of one-hot row-vector labels into smoothed versions.
+
+    # Arguments
+        y: matrix of one-hot row-vector labels to be smoothed
+        smooth_factor: label smoothing factor (between 0 and 1)
+
+    # Returns
+        A matrix of smoothed labels.
+    '''
+    assert len(y.shape) == 2
+    if 0 <= smooth_factor <= 1:
+        # label smoothing ref: https://www.robots.ox.ac.uk/~vgg/rg/papers/reinception.pdf
+        y *= 1 - smooth_factor
+        y += smooth_factor / y.shape[1]
+    else:
+        raise Exception(
+            'Invalid label smoothing factor: ' + str(smooth_factor))
+    return y
+
 # Image preprocessing
 def resize_with_pad(img, height, width):
     """
@@ -176,6 +196,8 @@ class CaribbeanDataset(Iterator):
             example_ids = None
         if batch_Y[0] is not None:
             batch_Y = keras.utils.to_categorical(batch_Y, num_classes=self._n_classes)
+            # label smoothing
+            batch_Y = smooth_labels(batch_Y)
         else:
             batch_Y = None
         # Pad and stack images
