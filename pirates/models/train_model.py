@@ -191,7 +191,7 @@ class CaribbeanModel:
         return model
 
 
-def predict_generator(model, generator, outdir, set_name):
+def predict_generator(model, generator, outdir, set_name, output):
     """
     """
     probabilities = []
@@ -218,8 +218,35 @@ def predict_generator(model, generator, outdir, set_name):
             "other",
         ],
     )
+    submission = submission.drop_duplicates(subset="id")
     # Save test csv file for submission
     submission.to_csv(outdir + f"submission_{set_name}.csv", index=False)
+
+
+def extract_features_generator(model, generator, outdir, set_name):
+    """
+    """
+    # Create feature extractor model
+    feature_vector = model.get_layer("keras_layer").output
+    feature_extractor = tf.keras.models.Model(
+        inputs=model.input, outputs=feature_vector
+    )
+    # Predict features
+    features = []
+    generator_IDs = []
+    for idx, (generator_ID, X_generator) in tqdm(
+        enumerate(generator), desc=set_name, total=generator._num_examples
+    ):
+        generator_IDs.append(generator_ID)
+        features.append(np.squeeze(model.predict(X_generator), axis=0).tolist())
+        if idx > generator._num_examples:
+            break
+
+    generator_IDs = np.reshape(np.asarray(generator_IDs), [-1])
+    features = pd.DataFrame({"id": generator_IDs, "features": features})
+    features = features.drop_duplicates(subset="id")
+    # Save test csv file for features
+    features.to_csv(outdir + f"features_{set_name}.csv", index=False)
 
 
 def transfer_train(
