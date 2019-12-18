@@ -146,7 +146,7 @@ class CaribbeanModel:
                     monitor="val_loss",
                     mode="min",
                     min_delta=0.1,
-                    patience=1,
+                    patience=2,
                     restore_best_weights=True,
                 ),
             ]
