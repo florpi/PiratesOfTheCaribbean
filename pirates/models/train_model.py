@@ -238,7 +238,9 @@ def extract_features_generator(model, generator, outdir, set_name):
         enumerate(generator), desc=set_name, total=generator._num_examples
     ):
         generator_IDs.append(generator_ID)
-        features.append(np.squeeze(model.predict(X_generator), axis=0).tolist())
+        features.append(
+            np.squeeze(feature_extractor.predict(X_generator), axis=0).tolist()
+        )
         if idx > generator._num_examples:
             break
 
