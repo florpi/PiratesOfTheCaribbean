@@ -142,6 +142,7 @@ class CaribbeanModel:
             )
             callbacks = [
                 ModelCheckpoint(model_path, monitor="val_loss", mode="min"),
+<<<<<<< HEAD
                 # EarlyStopping(
                 #     monitor="val_loss",
                 #     mode="min",
@@ -149,6 +150,15 @@ class CaribbeanModel:
                 #     patience=1,
                 #     restore_best_weights=True,
                 # ),
+=======
+                EarlyStopping(
+                    monitor="val_loss",
+                    mode="min",
+                    min_delta=0.1,
+                    patience=2,
+                    restore_best_weights=True,
+                ),
+>>>>>>> f5e814ed9f3469370bd4f0b4fd9c86a8eb6dbabe
             ]
             model.fit(
                 train_gen,
