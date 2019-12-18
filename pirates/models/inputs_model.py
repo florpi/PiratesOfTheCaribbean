@@ -349,7 +349,7 @@ def get_dataset_generator(
         return_ids=return_ids,
         return_labels=return_labels,
         n_classes=len(LABELMAP),
-        smooth_factor=0.2,
+        smooth_factor=0.,
         image_preprocessing=lambda x: resize_with_pad(x, *img_dims),
         label_preprocessing=lambda x: LABELMAP[x],
         crop_buffer=0.5,
