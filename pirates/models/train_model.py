@@ -173,25 +173,25 @@ class CaribbeanModel:
                 if idx > val_gen._num_examples:
                     break
 
-            '''
+            y_true = np.argmax(y_val_all, axis=-1)
+            y_pred = np.argmax(probabilities, axis=-1)
             visualize.plot_confusion_matrix(
-                np.argmax(y_val_all, axis=-1),
-                np.argmax(probabilities, axis=-1),
+                y_true,
+                y_pred,
                 classes=LABELS,
                 normalize=True,
                 experiment=experiment,
             )
 
             visualize.plot_confusion_matrix(
-                np.argmax(y_val_all, axis=-1),
-                np.argmax(probabilities, axis=-1),
+                y_true,
+                y_pred,
                 classes=LABELS,
                 normalize=False,
                 experiment=experiment,
             )
-            '''
-            experiment.log_confusion_matrix(np.argmax(y_val_all, axis=-1), 
-                    np.argmax(probabilities, axis=-1))#, labels=LABELS)
+            experiment.log_confusion_matrix(y_true=y_true, y_predicted=y_pred,
+                    labels=LABELS);
         return model
 
 
