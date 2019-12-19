@@ -195,7 +195,7 @@ class CaribbeanModel:
         return model
 
 
-def predict_generator(model, generator, outdir, set_name, output):
+def predict_generator(model, generator, outdir, set_name):
     """
     """
     probabilities = []
