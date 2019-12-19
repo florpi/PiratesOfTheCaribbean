@@ -190,8 +190,8 @@ class CaribbeanModel:
                 experiment=experiment,
             )
             '''
-            experiment.log_confusion_matrix(np.argmax(y_vall_all, axis=-1), 
-                    np.argmax(probabilities, axis=-1), labels=LABELS);
+            experiment.log_confusion_matrix(np.argmax(y_val_all, axis=-1), 
+                    np.argmax(probabilities, axis=-1), labels=LABELS)
         return model
 
 
