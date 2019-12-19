@@ -100,11 +100,21 @@ class CaribbeanModel:
     """
     """
 
-    def __init__(self, input_shape, module_url, directory):
+    def __init__(
+        self,
+        input_shape,
+        module_url,
+        directory,
+        loss_fn=categorical_focal_loss(alpha=0.25, gamma=2.0),
+    ):
         self.input_shape = input_shape
         self.module_url = module_url
         self.num_classes = len(LABELS)
         self.directory = directory
+        if loss_fn is None:
+            self.loss_fn = categorical_focal_loss(alpha=0.25, gamma=2.0)
+        else:
+            self.loss_fn = loss_fn
 
     def build(self):
         """
@@ -118,8 +128,9 @@ class CaribbeanModel:
         # Print summary
         model.summary()
         # Loss layer
-        loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
-        model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(), loss=self.loss_fn, metrics=["acc"]
+        )
         # model.compile(
         #     optimizer=tf.keras.optimizers.Adam(),
         #     loss="categorical_crossentropy",
@@ -176,22 +187,15 @@ class CaribbeanModel:
             y_true = np.argmax(y_val_all, axis=-1)
             y_pred = np.argmax(probabilities, axis=-1)
             visualize.plot_confusion_matrix(
-                y_true,
-                y_pred,
-                classes=LABELS,
-                normalize=True,
-                experiment=experiment,
+                y_true, y_pred, classes=LABELS, normalize=True, experiment=experiment
             )
 
             visualize.plot_confusion_matrix(
-                y_true,
-                y_pred,
-                classes=LABELS,
-                normalize=False,
-                experiment=experiment,
+                y_true, y_pred, classes=LABELS, normalize=False, experiment=experiment
             )
-            experiment.log_confusion_matrix(y_true=y_true, y_predicted=y_pred,
-                    labels=LABELS);
+            experiment.log_confusion_matrix(
+                y_true=y_true, y_predicted=y_pred, labels=LABELS
+            )
         return model
 
 
@@ -263,10 +267,14 @@ def transfer_train(
     input_shape,
     n_epochs=10,
     directory="/content/drive/My Drive/pirates/cnn_model/",
+    loss_fn=None,
 ):
 
     caribbean = CaribbeanModel(
-        input_shape=input_shape, module_url=module_url, directory=directory
+        input_shape=input_shape,
+        module_url=module_url,
+        directory=directory,
+        loss_fn=loss_fn,
     )
     model = caribbean.train_and_evaluate(
         train_generator, validation_generator, n_epochs
