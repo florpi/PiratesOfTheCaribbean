@@ -28,6 +28,32 @@ LABELMAP = {
     "irregular_metal": 3,
     "other": 4,
 }
+LABELMAP_INV = {
+    0: "concrete_cement",
+    1: "healthy_metal",
+    2: "incomplete",
+    3: "irregular_metal",
+    4: "other",
+}
+
+# def smooth_labels(y, smooth_factor):
+#     """Convert a matrix of one-hot row-vector labels into smoothed versions.
+#
+#     # Arguments
+#         y: matrix of one-hot row-vector labels to be smoothed
+#         smooth_factor: label smoothing factor (between 0 and 1)
+#
+#     # Returns
+#         A matrix of smoothed labels.
+#     """
+#     assert len(y.shape) == 2
+#     if 0 <= smooth_factor <= 1:
+#         # label smoothing ref: https://www.robots.ox.ac.uk/~vgg/rg/papers/reinception.pdf
+#         y *= 1 - smooth_factor
+#         y += smooth_factor / y.shape[1]
+#     else:
+#         raise Exception("Invalid label smoothing factor: " + str(smooth_factor))
+#     return y
 
 
 def smooth_labels(y, smooth_factor):
@@ -39,12 +65,35 @@ def smooth_labels(y, smooth_factor):
 
     # Returns
         A matrix of smoothed labels.
+    ["concrete_cement", "healthy_metal", "incomplete", "irregular_metal", "other"]
     """
-    assert len(y.shape) == 2
+    assert len(y.shape) == 1
     if 0 <= smooth_factor <= 1:
+        smooth_factor = float(smooth_factor)
         # label smoothing ref: https://www.robots.ox.ac.uk/~vgg/rg/papers/reinception.pdf
-        y *= 1 - smooth_factor
-        y += smooth_factor / y.shape[1]
+        label_id = LABELMAP_INV[np.argmax(y)]
+        if label_id == "concrete_cement":
+            return [
+                1 - smooth_factor,
+                smooth_factor / 3,
+                smooth_factor / 3,
+                smooth_factor / 3,
+                0,
+            ]
+        elif label_id == "healthy_metal":
+            return [0, 1 - smooth_factor, 0, smooth_factor, 0]
+        elif label_id == "incomplete":
+            return [
+                smooth_factor / 3,
+                smooth_factor / 3,
+                1 - smooth_factor,
+                smooth_factor / 3,
+                0,
+            ]
+        elif label_id == "irregular_metal":
+            return [0, smooth_factor, 0, 1 - smooth_factor, 0]
+        else:
+            return y
     else:
         raise Exception("Invalid label smoothing factor: " + str(smooth_factor))
     return y
