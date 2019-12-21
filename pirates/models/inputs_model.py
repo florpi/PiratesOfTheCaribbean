@@ -198,7 +198,7 @@ class CaribbeanDataset(Iterator):
         self.label_preprocessing = label_preprocessing
         self.smooth_ids = None
         if smooth_ids_path is not None:
-            self._smooth_ids = pd.read_csv(outpath, names=["ids"])[
+            self._smooth_ids = pd.read_csv(smooth_ids_path, names=["ids"])[
                 "ids"
             ].values.tolist()
             logging.info(f"Read {len(self._smooth_ids)} smoothing ids.")
