@@ -109,6 +109,7 @@ class CaribbeanDataset(Iterator):
         return_labels=True,
         n_classes=-1,
         smooth_factor=0,
+        smooth_ids_path=None,
         *args,
         **kwargs,
     ):
@@ -146,6 +147,12 @@ class CaribbeanDataset(Iterator):
         # Preprocessing image function
         self.image_preprocessing = image_preprocessing
         self.label_preprocessing = label_preprocessing
+        self.smooth_ids = None
+        if smooth_ids_path is not None:
+            self._smooth_ids = pd.read_csv(outpath, names=["ids"])[
+                "ids"
+            ].values.tolist()
+            logging.info(f"Read {len(self._smooth_ids)} smoothing ids.")
         # Init ImageDataGenerator
         super().__init__(
             n=self._num_examples,
@@ -201,7 +208,15 @@ class CaribbeanDataset(Iterator):
             batch_Y = keras.utils.to_categorical(batch_Y, num_classes=self._n_classes)
             # label smoothing
             if self._smooth_factor:
-                batch_Y = smooth_labels(batch_Y, self._smooth_factor)
+                smoothed_batch_Y = []
+                for example_id, Y in zip(example_ids, batch_Y):
+                    if example_id in self._smooth_ids:
+                        smooth_factor = np.random.uniform(0, self._smooth_factor)
+                        smoothed_Y = smooth_labels(batch_Y, smooth_factor)
+                        smoothed_batch_Y.append(smoothed_Y)
+                    else:
+                        smoothed_batch_Y.append(Y)
+                batch_Y = np.asarray(smoothed_batch_Y)
         else:
             batch_Y = None
         # Pad and stack images
@@ -309,7 +324,8 @@ def get_dataset_generator(
     dataframes_pattern,
     batch_size,
     img_dims,
-    smooth_factor=0.,
+    smooth_factor=0.0,
+    smooth_ids_path=None,
     augment=False,
     return_ids=False,
     return_labels=True,
@@ -351,6 +367,7 @@ def get_dataset_generator(
         return_labels=return_labels,
         n_classes=len(LABELMAP),
         smooth_factor=smooth_factor,
+        smooth_ids_path=smooth_ids_path,
         image_preprocessing=lambda x: resize_with_pad(x, *img_dims),
         label_preprocessing=lambda x: LABELMAP[x],
         crop_buffer=0.5,
