@@ -67,7 +67,9 @@ def smooth_labels(y, smooth_factor):
         A matrix of smoothed labels.
     ["concrete_cement", "healthy_metal", "incomplete", "irregular_metal", "other"]
     """
-    assert len(y.shape) == 1
+    if len(y.shape) != 1:
+        logging.error(y)
+        raise ValueError(f"Cannot smooth {y}")
     if 0 <= smooth_factor <= 1:
         smooth_factor = float(smooth_factor)
         # label smoothing ref: https://www.robots.ox.ac.uk/~vgg/rg/papers/reinception.pdf
@@ -261,7 +263,7 @@ class CaribbeanDataset(Iterator):
                 for example_id, Y in zip(example_ids, batch_Y):
                     if example_id in self._smooth_ids:
                         smooth_factor = np.random.uniform(0, self._smooth_factor)
-                        smoothed_Y = smooth_labels(batch_Y, smooth_factor)
+                        smoothed_Y = smooth_labels(Y, smooth_factor)
                         smoothed_batch_Y.append(smoothed_Y)
                     else:
                         smoothed_batch_Y.append(Y)
