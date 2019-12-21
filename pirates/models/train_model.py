@@ -119,7 +119,7 @@ class CaribbeanModel:
         model.summary()
         # Loss layer
         loss = categorical_focal_loss(alpha=0.25, gamma=2.0)
-        model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc"])
+        model.compile(optimizer=tf.keras.optimizers.Adam(), loss=loss, metrics=["acc", "categorical_crossentropy"])
         # model.compile(
         #     optimizer=tf.keras.optimizers.Adam(),
         #     loss="categorical_crossentropy",
