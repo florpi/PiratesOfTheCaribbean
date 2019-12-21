@@ -409,7 +409,7 @@ def get_dataset_generator(
         dataframes,
         zone_to_image,
         label_col="roof_material" if return_labels else None,
-        id_col="id" if return_ids else None,
+        id_col="id",  # if return_ids else None,
         batch_size=batch_size,
         augment=augment,
         return_ids=return_ids,
