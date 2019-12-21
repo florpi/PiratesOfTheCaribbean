@@ -63,8 +63,8 @@ def compute_geometric_features(geojsons, probabilities):
         df["path"] = geojson
         df["zone"] = df["path"].apply(lambda x: x.split("/")[6])
         df = df.to_crs(zone_to_crs[df.at[0,"zone"]])
-        for r in radius:
-            df = compute_all_neighbours(df, r, probabilities)
+        #for r in radius:
+        #    df = compute_all_neighbours(df, r, probabilities)
         df["area"] = df["geometry"].area.copy()
         dfs.append(df)
 
