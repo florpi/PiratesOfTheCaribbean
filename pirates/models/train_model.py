@@ -24,11 +24,11 @@ from pirates.visualization import visualize
 
 LABELS = ["concrete_cement", "healthy_metal", "incomplete", "irregular_metal", "other"]
 CLASS_WEIGHTS = {
-    0: 0.1389522133628739,
-    1: 0.0260981272695377,
-    2: 0.2881890846285318,
-    3: 0.0367543825354862,
-    4: 1.0,
+    0: 1.5,
+    1: 0.7,
+    2: 3,
+    3: 1,
+    4: 4,
 }
 
 
@@ -168,7 +168,7 @@ class CaribbeanModel:
                 epochs=epochs,
                 validation_data=val_gen,
                 callbacks=callbacks,
-                # class_weight=CLASS_WEIGHTS,
+                class_weight=CLASS_WEIGHTS,
             )
         model.save(os.path.join(self.directory, "cnn_final.h5"))
         # Run validation
