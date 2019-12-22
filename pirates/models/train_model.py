@@ -24,11 +24,11 @@ from pirates.visualization import visualize
 
 LABELS = ["concrete_cement", "healthy_metal", "incomplete", "irregular_metal", "other"]
 CLASS_WEIGHTS = {
-    0: 10,
-    1: 1,
-    2: 30,
-    3: 3,
-    4: 35,
+    0: 1.5,
+    1: 0.7,
+    2: 3,
+    3: 1,
+    4: 4,
 }
 
 
