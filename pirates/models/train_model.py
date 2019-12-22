@@ -129,7 +129,8 @@ class CaribbeanModel:
         model.summary()
         # Loss layer
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(), loss=self.loss_fn, 
+            optimizer=tf.keras.optimizers.Adam(),
+            loss=self.loss_fn,
             metrics=["acc", "categorical_crossentropy"],
         )
         # model.compile(
@@ -257,7 +258,7 @@ def extract_features_generator(model, generator, outdir, set_name):
     features = pd.DataFrame({"id": generator_IDs, "features": features})
     features = features.drop_duplicates(subset="id")
     # Save test csv file for features
-    features.to_csv(outdir + f"features_{set_name}.csv", index=False)
+    features.to_pickle(outdir + f"features_{set_name}.pkl")
 
 
 def transfer_train(
