@@ -402,7 +402,14 @@ def get_dataset_generator(
     zone_to_image = {p.split("/")[-2]: p for p in img_paths}
     logging.info(f"Mapping zones to images: {str(zone_to_image)}")
     # Read GeoDataFrames
-    dataframe_paths = glob(dataframes_pattern)
+    if isinstance(dataframes_pattern, list):
+        # list of patterns
+        dataframe_paths = []
+        for pattern in dataframes_pattern:
+            dataframe_paths += glob(pattern)
+    else:
+        # single glob pattern
+        dataframe_paths = glob(dataframes_pattern)
     if not len(dataframe_paths):
         raise ValueError(f"No image data found for pattern: {dataframe_paths}")
     dataframes = [_read_geodataframe(path) for path in dataframe_paths]
