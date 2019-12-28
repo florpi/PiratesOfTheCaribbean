@@ -9,6 +9,7 @@ Our model uses the pre-trained Nasnet architecture publicly availabe in [tensorf
 
 This is the confusion matrix of one of the folds,
 
+<div style="text-align:center"><img src="./confusion_matrix.svg"  width="70%"></div>
 
 Moreover, we found that if we trained the model further, although both the training and validation loss would still go down, the test set log loss would increase. This is probably due to the noise in the labeling of the dataset. We found mislabeled examples in both the verified and non-verified datasets. Although we tried to apply [label smoothing][4], to the examples that our best model missclassified, it didn't decrease our test set loss.
 
